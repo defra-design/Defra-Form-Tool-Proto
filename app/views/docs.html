@@ -1,0 +1,230 @@
+{% extends "layouts/main.html" %}
+
+{% block content %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-full">
+    <h1 class="govuk-heading-l">Form Builder Documentation</h1>
+
+    <div class="govuk-tabs" data-module="govuk-tabs">
+      <h2 class="govuk-tabs__title">
+        Documentation sections
+      </h2>
+      <ul class="govuk-tabs__list">
+        <li class="govuk-tabs__list-item govuk-tabs__list-item--selected">
+          <a class="govuk-tabs__tab" href="#overview">
+            Overview
+          </a>
+        </li>
+        <li class="govuk-tabs__list-item">
+          <a class="govuk-tabs__tab" href="#getting-started">
+            Getting Started
+          </a>
+        </li>
+        <li class="govuk-tabs__list-item">
+          <a class="govuk-tabs__tab" href="#templates">
+            Templates & Components
+          </a>
+        </li>
+        <li class="govuk-tabs__list-item">
+          <a class="govuk-tabs__tab" href="#javascript">
+            JavaScript
+          </a>
+        </li>
+        <li class="govuk-tabs__list-item">
+          <a class="govuk-tabs__tab" href="#data-storage">
+            Data Storage
+          </a>
+        </li>
+      </ul>
+
+      <div class="govuk-tabs__panel" id="overview">
+        <h2 class="govuk-heading-l">Overview</h2>
+        <p class="govuk-body">
+          The Form Builder is a tool built using the GOV.UK Prototype Kit that allows you to create and manage forms with multiple pages and field types. It uses browser localStorage for data persistence and follows GOV.UK Design System patterns.
+        </p>
+
+        <h3 class="govuk-heading-m">Key Features</h3>
+        <ul class="govuk-list govuk-list--bullet">
+          <li>Create multi-page forms</li>
+          <li>Add various field types including text, textarea, radio buttons, checkboxes, and select dropdowns</li>
+          <li>Live preview of fields as you build them</li>
+          <li>Manage pages and fields through an intuitive interface</li>
+          <li>Data persistence using localStorage</li>
+        </ul>
+      </div>
+
+      <div class="govuk-tabs__panel govuk-tabs__panel--hidden" id="getting-started">
+        <h2 class="govuk-heading-l">Getting Started</h2>
+        
+        <h3 class="govuk-heading-m">Creating a Form</h3>
+        <ol class="govuk-list govuk-list--number">
+          <li>Start at the Pages List (/pages)</li>
+          <li>Click "Add new page" to create your first page</li>
+          <li>Enter a title for your page</li>
+          <li>Add fields to your page using the field type options</li>
+          <li>Configure each field's settings and preview how it will look</li>
+          <li>Return to the Pages List to manage your pages</li>
+        </ol>
+
+        <h3 class="govuk-heading-m">Field Types Available</h3>
+        <h4 class="govuk-heading-s">Text Inputs</h4>
+        <ul class="govuk-list govuk-list--bullet">
+          <li>Text input - Single line text</li>
+          <li>Text area - Multi-line text</li>
+          <li>Email address - With email format validation</li>
+          <li>Telephone number - For phone numbers</li>
+          <li>Number - For numeric input</li>
+        </ul>
+
+        <h4 class="govuk-heading-s">Selection Inputs</h4>
+        <ul class="govuk-list govuk-list--bullet">
+          <li>Radio buttons - Single selection from multiple options</li>
+          <li>Checkboxes - Multiple selections allowed</li>
+          <li>Select dropdown - Single selection from a dropdown list</li>
+        </ul>
+
+        <h4 class="govuk-heading-s">Special Inputs</h4>
+        <ul class="govuk-list govuk-list--bullet">
+          <li>Date input - For capturing dates</li>
+          <li>File upload - For file attachments</li>
+        </ul>
+      </div>
+
+      <div class="govuk-tabs__panel govuk-tabs__panel--hidden" id="templates">
+        <h2 class="govuk-heading-l">Templates & Components</h2>
+
+        <h3 class="govuk-heading-m">Core Templates</h3>
+        <dl class="govuk-summary-list">
+          <div class="govuk-summary-list__row">
+            <dt class="govuk-summary-list__key">pages.html</dt>
+            <dd class="govuk-summary-list__value">
+              Main page list view showing all created pages and form summary. Includes functionality to add, edit, and delete pages.
+            </dd>
+          </div>
+          <div class="govuk-summary-list__row">
+            <dt class="govuk-summary-list__key">page-create.html</dt>
+            <dd class="govuk-summary-list__value">
+              Form for creating a new page. Captures the page title and creates a unique ID.
+            </dd>
+          </div>
+          <div class="govuk-summary-list__row">
+            <dt class="govuk-summary-list__key">page-editor.html</dt>
+            <dd class="govuk-summary-list__value">
+              Interface for adding and managing fields on a page. Shows the list of fields and options to add new ones.
+            </dd>
+          </div>
+          <div class="govuk-summary-list__row">
+            <dt class="govuk-summary-list__key">question-editor.html</dt>
+            <dd class="govuk-summary-list__value">
+              Editor for individual fields. Includes settings specific to each field type and a live preview.
+            </dd>
+          </div>
+        </dl>
+
+        <h3 class="govuk-heading-m">Field Type Templates</h3>
+        <p class="govuk-body">Located in /app/views/field-types/:</p>
+        <dl class="govuk-summary-list">
+          <div class="govuk-summary-list__row">
+            <dt class="govuk-summary-list__key">text.html, textarea.html, etc.</dt>
+            <dd class="govuk-summary-list__value">
+              Individual templates for each field type, containing the specific settings and preview layout for that type.
+            </dd>
+          </div>
+        </dl>
+
+        <h3 class="govuk-heading-m">Include Files</h3>
+        <dl class="govuk-summary-list">
+          <div class="govuk-summary-list__row">
+            <dt class="govuk-summary-list__key">_option-list.html</dt>
+            <dd class="govuk-summary-list__value">
+              Reusable component for managing options in radio, checkbox, and select fields.
+            </dd>
+          </div>
+        </dl>
+      </div>
+
+      <div class="govuk-tabs__panel govuk-tabs__panel--hidden" id="javascript">
+        <h2 class="govuk-heading-l">JavaScript</h2>
+
+        <h3 class="govuk-heading-m">Core JavaScript Files</h3>
+        <dl class="govuk-summary-list">
+          <div class="govuk-summary-list__row">
+            <dt class="govuk-summary-list__key">pages.js</dt>
+            <dd class="govuk-summary-list__value">
+              Handles the pages list view. Manages loading, displaying, and deleting pages. Also maintains the form summary counts.
+            </dd>
+          </div>
+          <div class="govuk-summary-list__row">
+            <dt class="govuk-summary-list__key">page-editor.js</dt>
+            <dd class="govuk-summary-list__value">
+              Manages the page editing interface. Handles loading and displaying fields for a specific page.
+            </dd>
+          </div>
+          <div class="govuk-summary-list__row">
+            <dt class="govuk-summary-list__key">options.js</dt>
+            <dd class="govuk-summary-list__value">
+              Handles the management of options for radio, checkbox, and select fields. Includes adding, editing, and removing options.
+            </dd>
+          </div>
+        </dl>
+
+        <h3 class="govuk-heading-m">Data Flow</h3>
+        <ol class="govuk-list govuk-list--number">
+          <li>Pages are created and stored with a 'page_' prefix</li>
+          <li>Fields are created with a 'form_' prefix and linked to pages via pageId</li>
+          <li>Options are stored with an 'option_' prefix and linked to fields</li>
+          <li>All items use timestamps in their IDs for uniqueness</li>
+        </ol>
+      </div>
+
+      <div class="govuk-tabs__panel govuk-tabs__panel--hidden" id="data-storage">
+        <h2 class="govuk-heading-l">Data Storage</h2>
+
+        <h3 class="govuk-heading-m">localStorage Structure</h3>
+        <dl class="govuk-summary-list">
+          <div class="govuk-summary-list__row">
+            <dt class="govuk-summary-list__key">Pages</dt>
+            <dd class="govuk-summary-list__value">
+              <pre class="govuk-body"><code>{
+  id: "page_[timestamp]",
+  title: "Page Title"
+}</code></pre>
+            </dd>
+          </div>
+          <div class="govuk-summary-list__row">
+            <dt class="govuk-summary-list__key">Fields</dt>
+            <dd class="govuk-summary-list__value">
+              <pre class="govuk-body"><code>{
+  id: "form_[timestamp]",
+  pageId: "page_[timestamp]",
+  fieldType: "text|textarea|radio|etc",
+  title: "Question Text",
+  hint: "Optional hint text",
+  options: [] // For radio, checkbox, select
+}</code></pre>
+            </dd>
+          </div>
+          <div class="govuk-summary-list__row">
+            <dt class="govuk-summary-list__key">Options</dt>
+            <dd class="govuk-summary-list__value">
+              <pre class="govuk-body"><code>{
+  id: "option_[timestamp]",
+  value: "Option text",
+  hint: "Optional hint text"
+}</code></pre>
+            </dd>
+          </div>
+        </dl>
+
+        <h3 class="govuk-heading-m">Data Management</h3>
+        <ul class="govuk-list govuk-list--bullet">
+          <li>All data is stored in the browser's localStorage</li>
+          <li>Data persists until manually cleared or browser storage is cleared</li>
+          <li>Use the "Clear form data" button to remove all stored data</li>
+          <li>Individual pages and fields can be deleted using their respective delete buttons</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

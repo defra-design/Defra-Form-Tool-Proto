@@ -1,0 +1,45 @@
+{# app/views/pages.html #}
+{% extends "layouts/main.html" %}
+
+{% block content %}
+<div class="govuk-grid-row" data-pages>
+  <div class="govuk-grid-column-two-thirds">
+    <h1 class="govuk-heading-l">Form pages</h1>
+
+    <div class="govuk-button-group govuk-!-margin-bottom-6">
+      <a href="/page-create" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
+        Add a page
+      </a>
+      <a href="/form-preview" role="button" draggable="false" class="govuk-button govuk-button--secondary" data-module="govuk-button">
+        Preview form
+      </a>
+    </div>
+
+    <div class="govuk-form-group">
+      <div class="govuk-body" data-pages-list>
+        {# Pages will be dynamically inserted here #}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block pageScripts %}
+<script src="/public/javascripts/pages.js"></script>
+{% endblock %}
+
+{% block pageStyles %}
+<style>
+  .govuk-link--danger {
+    color: #d4351c;
+  }
+  
+  .govuk-link--danger:hover {
+    color: #942514;
+  }
+
+  .govuk-link--danger:focus {
+    color: #0b0c0c;
+  }
+</style>
+{% endblock %}

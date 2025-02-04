@@ -1,0 +1,113 @@
+{# app/views/field-types.html #}
+{% extends "layouts/main.html" %}
+
+{% block content %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds">
+    <h1 class="govuk-heading-l">
+      Add a new field
+    </h1>
+
+    <h2 class="govuk-heading-m">Text inputs</h2>
+
+    <div class="govuk-grid-row">
+      <div class="govuk-grid-column-one-third">
+        <div class="govuk-body">
+          <a href="/question-editor/new/text?pageId={{ data.pageId }}" class="govuk-link">Text input</a>
+        </div>
+      </div>
+      <div class="govuk-grid-column-one-third">
+        <div class="govuk-body">
+          <a href="/question-editor/new/textarea?pageId={{ data.pageId }}" class="govuk-link">Text area</a>
+        </div>
+      </div>
+      <div class="govuk-grid-column-one-third">
+        <div class="govuk-body">
+          <a href="/question-editor/new/email?pageId={{ data.pageId }}" class="govuk-link">Email address</a>
+        </div>
+      </div>
+      <div class="govuk-grid-column-one-third">
+        <div class="govuk-body">
+          <a href="/question-editor/new/tel?pageId={{ data.pageId }}" class="govuk-link">Telephone number</a>
+        </div>
+      </div>
+      <div class="govuk-grid-column-one-third">
+        <div class="govuk-body">
+          <a href="/question-editor/new/number?pageId={{ data.pageId }}" class="govuk-link">Number</a>
+        </div>
+      </div>
+    </div>
+
+    <h2 class="govuk-heading-m">Selection</h2>
+
+    <div class="govuk-grid-row">
+      <div class="govuk-grid-column-one-third">
+        <div class="govuk-body">
+          <a href="/question-editor/new/radio?pageId={{ data.pageId }}" class="govuk-link">Radio buttons</a>
+        </div>
+      </div>
+      <div class="govuk-grid-column-one-third">
+        <div class="govuk-body">
+          <a href="/question-editor/new/checkbox?pageId={{ data.pageId }}" class="govuk-link">Checkboxes</a>
+        </div>
+      </div>
+      <div class="govuk-grid-column-one-third">
+        <div class="govuk-body">
+          <a href="/question-editor/new/select?pageId={{ data.pageId }}" class="govuk-link">Select</a>
+        </div>
+      </div>
+    </div>
+
+    <h2 class="govuk-heading-m">Date and time</h2>
+
+    <div class="govuk-grid-row">
+      <div class="govuk-grid-column-one-third">
+        <div class="govuk-body">
+          <a href="/question-editor/new/date?pageId={{ data.pageId }}" class="govuk-link">Date input</a>
+        </div>
+      </div>
+    </div>
+
+    <h2 class="govuk-heading-m">Files</h2>
+
+    <div class="govuk-grid-row">
+      <div class="govuk-grid-column-one-third">
+        <div class="govuk-body">
+          <a href="/question-editor/new/file?pageId={{ data.pageId }}" class="govuk-link">File upload</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="govuk-button-group govuk-!-margin-top-6">
+      <a href="/page-editor/{{ data.pageId }}" class="govuk-button govuk-button--secondary">
+        Back to page
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block pageScripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Get pageId from URL query parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    const pageId = urlParams.get('pageId');
+    
+    if (pageId) {
+      // Update all links to include pageId
+      document.querySelectorAll('a[href*="/question-editor/new/"]').forEach(link => {
+        const url = new URL(link.href, window.location.origin);
+        url.searchParams.set('pageId', pageId);
+        link.href = url.toString();
+      });
+      
+      // Update back button
+      const backButton = document.querySelector('a[href*="/page-editor/"]');
+      if (backButton) {
+        backButton.href = `/page-editor/${pageId}`;
+      }
+    }
+  });
+</script>
+{% endblock %}

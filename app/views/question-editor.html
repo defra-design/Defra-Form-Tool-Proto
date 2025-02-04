@@ -1,0 +1,221 @@
+{# app/views/question-editor.html #}
+{% extends "layouts/main.html" %}
+
+{% block pageTitle %}
+  Question Editor – {{ params.type | capitalize }} Question
+{% endblock %}
+
+{% block beforeContent %}
+  {{ govukBackLink({
+    text: "Back",
+    href: params.returnUrl
+  }) }}
+{% endblock %}
+
+{% block content %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-one-half">
+    <form method="post" action="/question-editor/{{ params.id }}/save" data-question-form>
+      <input type="hidden" name="id" value="{{ params.id }}">
+      <input type="hidden" name="pageId" value="{{ params.pageId }}">
+      <input type="hidden" name="fieldType" value="{{ params.type }}">
+      <input type="hidden" name="returnUrl" value="{{ params.returnUrl }}">
+
+      <div class="govuk-form-group">
+        <h1 class="govuk-heading-l">
+          Edit {{ params.type | capitalize }} Question
+        </h1>
+      </div>
+
+      <div class="govuk-form-group">
+        <label class="govuk-label" for="title">
+          Question text
+        </label>
+        <input class="govuk-input" id="title" name="title" type="text" value="{{ data.title }}" data-question-title>
+      </div>
+
+      <div class="govuk-form-group">
+        <label class="govuk-label" for="hint">
+          Hint text (optional)
+        </label>
+        <div id="hint-hint" class="govuk-hint">
+          This will help users understand how to answer this question
+        </div>
+        <input class="govuk-input" id="hint" name="hint" type="text" value="{{ data.hint }}" data-question-hint>
+      </div>
+
+      {% if params.type === 'radio' or params.type === 'checkbox' or params.type === 'select' %}
+        {% include "includes/_option-list.html" %}
+      {% endif %}
+
+      <div class="govuk-button-group">
+        <button class="govuk-button" data-module="govuk-button">
+          Save changes
+        </button>
+        <a class="govuk-button govuk-button--secondary" href="{{ params.returnUrl }}" data-module="govuk-button">
+          Cancel
+        </a>
+      </div>
+    </form>
+  </div>
+
+  <div class="govuk-grid-column-one-half">
+    <div class="app-preview-panel">
+      <h2 class="govuk-heading-m">Preview</h2>
+      <div data-question-preview>
+        <!-- Preview content will be inserted here by JavaScript -->
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block pageScripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', (event) => {
+    const questionId = document.querySelector('input[name="id"]').value;
+    const fieldType = document.querySelector('input[name="fieldType"]').value;
+    const pageId = document.querySelector('input[name="pageId"]').value;
+    const isOptionsField = ['radio', 'checkbox', 'select'].includes(fieldType);
+    
+    // Initialize or get existing question data
+    let questionData = {};
+    const savedData = localStorage.getItem(questionId);
+    if (savedData) {
+      try {
+        questionData = JSON.parse(savedData);
+        console.log('Loaded existing question data:', questionData);
+      } catch (error) {
+        console.error('Error parsing saved data:', error);
+      }
+    }
+
+    // If no data exists or it's invalid, initialize with basic structure
+    if (!questionData || !questionData.id) {
+      questionData = {
+        id: questionId,
+        pageId: pageId,
+        fieldType: fieldType,
+        title: '',
+        hint: ''
+      };
+      if (isOptionsField) {
+        questionData.options = [];
+      }
+      // Save initial structure
+      localStorage.setItem(questionId, JSON.stringify(questionData));
+      console.log('Initialized new question data:', questionData);
+    }
+    
+    // Load saved data into form fields
+    const titleInput = document.querySelector('[data-question-title]');
+    const hintInput = document.querySelector('[data-question-hint]');
+    
+    if (titleInput && questionData.title) {
+      titleInput.value = questionData.title;
+    }
+    if (hintInput && questionData.hint) {
+      hintInput.value = questionData.hint;
+    }
+
+    // Function to save text field data
+    const saveTextFieldData = () => {
+      const currentData = JSON.parse(localStorage.getItem(questionId) || '{}');
+      currentData.title = titleInput ? titleInput.value : '';
+      currentData.hint = hintInput ? hintInput.value : '';
+      localStorage.setItem(questionId, JSON.stringify(currentData));
+      
+      // If we have an option manager, update its preview
+      if (window.optionManager) {
+        window.optionManager.updatePreview();
+      } else {
+        // Update preview for non-option fields
+        const previewContainer = document.querySelector('[data-question-preview]');
+        if (previewContainer) {
+          const previewHtml = `
+            <div class="govuk-form-group">
+              <h1 class="govuk-label-wrapper">
+                <label class="govuk-label govuk-label--l" for="preview-${fieldType}">
+                  ${currentData.title || 'Question text'}
+                </label>
+              </h1>
+              ${currentData.hint ? `<div id="preview-hint" class="govuk-hint">${currentData.hint}</div>` : ''}
+              <input class="govuk-input" id="preview-${fieldType}" name="preview-${fieldType}" type="text" aria-describedby="preview-hint">
+            </div>
+          `;
+          previewContainer.innerHTML = previewHtml;
+        }
+      }
+    };
+
+    // Set up event listeners for text fields
+    if (titleInput) {
+      titleInput.addEventListener('input', saveTextFieldData);
+    }
+    if (hintInput) {
+      hintInput.addEventListener('input', saveTextFieldData);
+    }
+
+    // Initialize the option manager only for fields that use options
+    if (isOptionsField) {
+      const optionList = document.querySelector('[data-option-list]');
+      if (optionList) {
+        console.log('Initializing OptionManager');
+        const manager = new Prototype.OptionManager(optionList);
+        manager.questionId = questionId;
+        manager.pageId = pageId;
+        manager.fieldType = fieldType;
+        manager.previewContainer = document.querySelector('[data-question-preview]');
+        
+        // Store manager globally so text field updates can trigger preview
+        window.optionManager = manager;
+
+        // Initialize the manager
+        manager.init();
+
+        // Load saved options
+        if (questionData.options && Array.isArray(questionData.options)) {
+          console.log('Loading saved options:', questionData.options);
+          questionData.options.forEach(option => {
+            if (option && option.text && option.text.trim() !== '') {
+              manager.addOption(option);
+            }
+          });
+        }
+      }
+    }
+    
+    // Initial preview render for all question types
+    saveTextFieldData();
+
+    // Handle form submission
+    const form = document.querySelector('[data-question-form]');
+    if (form) {
+      form.addEventListener('submit', (e) => {
+        // Get current data from localStorage
+        const currentData = JSON.parse(localStorage.getItem(questionId) || '{}');
+        
+        // Update page data
+        const pageDataStr = localStorage.getItem(pageId);
+        let pageData;
+        try {
+          pageData = pageDataStr ? JSON.parse(pageDataStr) : { questions: [] };
+        } catch (error) {
+          console.error('Error parsing page data:', error);
+          pageData = { questions: [] };
+        }
+        
+        // Find and update question in page data
+        const questionIndex = pageData.questions.findIndex(q => q.id === questionId);
+        if (questionIndex >= 0) {
+          pageData.questions[questionIndex] = currentData;
+        } else {
+          pageData.questions.push(currentData);
+        }
+        
+        localStorage.setItem(pageId, JSON.stringify(pageData));
+      });
+    }
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,38 @@
+{# app/views/form-preview.html #}
+{% extends "layouts/main.html" %}
+
+{% block content %}
+<div data-form-preview>
+  <div class="govuk-width-container">
+    <div class="govuk-breadcrumbs govuk-!-margin-bottom-6" data-breadcrumbs>
+      {# Breadcrumbs will be dynamically inserted here #}
+    </div>
+
+    <main class="govuk-main-wrapper">
+      <form class="form" method="post" action="/form-preview/save" data-form>
+        <input type="hidden" name="currentPage" value="{{ currentPage }}" />
+        
+        <div class="govuk-form-group">
+          <h1 class="govuk-heading-l" data-page-title></h1>
+          
+          {# Fields will be dynamically inserted here #}
+          <div data-fields-container class="govuk-!-margin-bottom-6"></div>
+
+          <div class="govuk-button-group govuk-!-margin-top-6" data-navigation>
+            <button class="govuk-button govuk-button--secondary" type="button" data-prev-page>
+              Previous page
+            </button>
+            <button class="govuk-button" type="button" data-next-page>
+              Continue
+            </button>
+          </div>
+        </div>
+      </form>
+    </main>
+  </div>
+</div>
+{% endblock %}
+
+{% block pageScripts %}
+<script src="/public/javascripts/form-preview.js"></script>
+{% endblock %}

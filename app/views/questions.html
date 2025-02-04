@@ -1,0 +1,127 @@
+{# app/views/questions.html #}
+{% extends "layouts/main.html" %}
+
+{% block content %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds">
+    <div class="govuk-grid-row">
+      <div class="govuk-grid-column-two-thirds">
+        <h1 class="govuk-heading-l">
+          Question fields
+        </h1>
+      </div>
+      <div class="govuk-grid-column-one-third">
+        <button class="govuk-button govuk-button--warning" data-module="govuk-button" data-clear-fields>
+          Clear all fields
+        </button>
+      </div>
+    </div>
+
+    <h2 class="govuk-heading-m">Your questions</h2>
+    <table class="govuk-table" data-questions-list>
+      <thead class="govuk-table__head">
+        <tr class="govuk-table__row">
+          <th class="govuk-table__header">Question</th>
+          <th class="govuk-table__header">Type</th>
+          <th class="govuk-table__header" colspan="2"><span class="govuk-visually-hidden">Actions</span></th>
+        </tr>
+      </thead>
+      <tbody class="govuk-table__body">
+      </tbody>
+    </table>
+
+    <div class="govuk-!-margin-top-6">
+      <h2 class="govuk-heading-m">Add a new question</h2>
+      
+      <div class="govuk-grid-row">
+        <div class="govuk-grid-column-one-half">
+          <h3 class="govuk-heading-s">Text inputs</h3>
+          <ul class="govuk-list">
+            <li>
+              <a class="govuk-link" href="/question-editor/text">Text input</a>
+            </li>
+            <li>
+              <a class="govuk-link" href="/question-editor/textarea">Text area</a>
+            </li>
+            <li>
+              <a class="govuk-link" href="/question-editor/email">Email address</a>
+            </li>
+            <li>
+              <a class="govuk-link" href="/question-editor/tel">Telephone number</a>
+            </li>
+            <li>
+              <a class="govuk-link" href="/question-editor/number">Number</a>
+            </li>
+          </ul>
+
+          <h3 class="govuk-heading-s">Selection inputs</h3>
+          <ul class="govuk-list">
+            <li>
+              <a class="govuk-link" href="/question-editor/radio">Radio buttons</a>
+            </li>
+            <li>
+              <a class="govuk-link" href="/question-editor/checkbox">Checkboxes</a>
+            </li>
+            <li>
+              <a class="govuk-link" href="/question-editor/select">Select dropdown</a>
+            </li>
+          </ul>
+        </div>
+
+        <div class="govuk-grid-column-one-half">
+          <h3 class="govuk-heading-s">Special inputs</h3>
+          <ul class="govuk-list">
+            <li>
+              <a class="govuk-link" href="/question-editor/date">Date input</a>
+            </li>
+            <li>
+              <a class="govuk-link" href="/question-editor/file">File upload</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block pageScripts %}
+<script src="/public/javascripts/questions.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const questionsListElement = document.querySelector('[data-questions-list]')
+    if (questionsListElement) {
+      const questionsList = new window.GOVUKPrototype.QuestionsList(questionsListElement)
+      questionsList.init()
+    }
+  })
+</script>
+{% endblock %}
+
+{% block pageStyles %}
+<style>
+  .app-field-type-card {
+    border-bottom: 1px solid #b1b4b6;
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+  }
+  
+  .app-field-type-card:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+  }
+
+  .govuk-link--danger {
+    color: #d4351c;
+  }
+  
+  .govuk-link--danger:hover {
+    color: #942514;
+  }
+
+  .govuk-link--danger:focus {
+    color: #0b0c0c;
+  }
+</style>
+{% endblock %}

@@ -1,0 +1,100 @@
+{
+  "countries": {
+    "name": "Countries",
+    "description": "List of countries with ISO codes",
+    "options": [
+      { "value": "AF", "text": "Afghanistan" },
+      { "value": "AL", "text": "Albania" },
+      { "value": "DZ", "text": "Algeria" },
+      { "value": "AD", "text": "Andorra" },
+      { "value": "AO", "text": "Angola" },
+      { "value": "AG", "text": "Antigua and Barbuda" },
+      { "value": "AR", "text": "Argentina" },
+      { "value": "AM", "text": "Armenia" },
+      { "value": "AU", "text": "Australia" },
+      { "value": "AT", "text": "Austria" },
+      { "value": "AZ", "text": "Azerbaijan" },
+      { "value": "BS", "text": "Bahamas" },
+      { "value": "BH", "text": "Bahrain" },
+      { "value": "BD", "text": "Bangladesh" },
+      { "value": "BB", "text": "Barbados" },
+      { "value": "BY", "text": "Belarus" },
+      { "value": "BE", "text": "Belgium" },
+      { "value": "BZ", "text": "Belize" },
+      { "value": "BJ", "text": "Benin" },
+      { "value": "BT", "text": "Bhutan" },
+      { "value": "BO", "text": "Bolivia (Plurinational State of)" },
+      { "value": "BA", "text": "Bosnia and Herzegovina" },
+      { "value": "BW", "text": "Botswana" },
+      { "value": "BR", "text": "Brazil" },
+      { "value": "BN", "text": "Brunei Darussalam" },
+      { "value": "BG", "text": "Bulgaria" },
+      { "value": "BF", "text": "Burkina Faso" },
+      { "value": "BI", "text": "Burundi" },
+      { "value": "CV", "text": "Cabo Verde" },
+      { "value": "KH", "text": "Cambodia" },
+      { "value": "CM", "text": "Cameroon" },
+      { "value": "CA", "text": "Canada" },
+      { "value": "CF", "text": "Central African Republic" },
+      { "value": "TD", "text": "Chad" },
+      { "value": "CL", "text": "Chile" },
+      { "value": "CN", "text": "China" },
+      { "value": "CO", "text": "Colombia" },
+      { "value": "KM", "text": "Comoros" },
+      { "value": "CG", "text": "Congo" },
+      { "value": "CD", "text": "Congo (Democratic Republic of the)" },
+      { "value": "CR", "text": "Costa Rica" },
+      { "value": "HR", "text": "Croatia" },
+      { "value": "CU", "text": "Cuba" },
+      { "value": "CY", "text": "Cyprus" },
+      { "value": "CZ", "text": "Czechia" },
+      { "value": "DK", "text": "Denmark" },
+      { "value": "DJ", "text": "Djibouti" },
+      { "value": "DM", "text": "Dominica" },
+      { "value": "DO", "text": "Dominican Republic" },
+      { "value": "EC", "text": "Ecuador" },
+      { "value": "EG", "text": "Egypt" },
+      { "value": "SV", "text": "El Salvador" },
+      { "value": "GQ", "text": "Equatorial Guinea" },
+      { "value": "ER", "text": "Eritrea" },
+      { "value": "EE", "text": "Estonia" },
+      { "value": "SZ", "text": "Eswatini" },
+      { "value": "ET", "text": "Ethiopia" },
+      { "value": "FJ", "text": "Fiji" },
+      { "value": "FI", "text": "Finland" },
+      { "value": "FR", "text": "France" }
+    ]
+  },
+  "yes_no": {
+    "name": "Yes/No",
+    "description": "Simple yes/no options",
+    "options": [
+      { "value": "yes", "text": "Yes" },
+      { "value": "no", "text": "No" }
+    ]
+  },
+  "cowBreeds": {
+    "name": "Cow Breeds",
+    "description": "Common cattle breeds",
+    "options": [
+      { "value": "HOL", "text": "Holstein Friesian", "hint": "A breed known for high milk production" },
+      { "value": "ANG", "text": "Angus", "hint": "A popular beef breed known for marbled meat" },
+      { "value": "HER", "text": "Hereford", "hint": "A breed with red bodies and white faces" },
+      { "value": "JER", "text": "Jersey", "hint": "A dairy breed producing rich milk" },
+      { "value": "CHA", "text": "Charolais", "hint": "A French breed known for lean beef" },
+      { "value": "SIM", "text": "Simmental", "hint": "A versatile breed used for milk and meat" }
+    ]
+  },
+  "batSpecies": {
+    "name": "Bat Species",
+    "description": "Common bat species",
+    "options": [
+      { "value": "MYLU", "text": "Little Brown Bat", "hint": "A small bat commonly found in North America" },
+      { "value": "PTFO", "text": "Flying Fox", "hint": "A large fruit bat in tropical regions" },
+      { "value": "DESC", "text": "Vampire Bat", "hint": "A bat species known for feeding on blood" },
+      { "value": "EPFU", "text": "Big Brown Bat", "hint": "A widespread bat species in urban areas" },
+      { "value": "LACI", "text": "Hoary Bat", "hint": "A migratory bat with frosted fur" },
+      { "value": "ROAE", "text": "Egyptian Fruit Bat", "hint": "A fruit-eating bat native to Africa" }
+    ]
+  }
+}

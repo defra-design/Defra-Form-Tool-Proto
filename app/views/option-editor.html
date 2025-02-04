@@ -1,0 +1,147 @@
+{# app/views/option-editor.html #}
+{% extends "layouts/main.html" %}
+
+{% block content %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds">
+    <form class="form" action="/option-editor/{{ data.id }}/save" method="post" data-option-form>
+      <div class="govuk-form-group">
+        <h1 class="govuk-label-wrapper">
+          <label class="govuk-label govuk-label--l" for="option-text">
+            {{ 'Edit' if not data.isNew else 'Add' }} option
+          </label>
+        </h1>
+
+        <div class="govuk-form-group">
+          <label class="govuk-label" for="option-text">
+            Option text
+          </label>
+          <div class="govuk-hint">
+            This is the text that will be shown next to the option
+          </div>
+          <input class="govuk-input" id="option-text" name="text" type="text" value="{{ data.text }}" spellcheck="false">
+        </div>
+
+        <div class="govuk-form-group">
+          <label class="govuk-label" for="option-hint">
+            Hint text (optional)
+          </label>
+          <div class="govuk-hint">
+            Help users understand what this option means
+          </div>
+          <input class="govuk-input" id="option-hint" name="hint" type="text" value="{{ data.hint }}" spellcheck="false">
+        </div>
+
+        <div class="govuk-form-group">
+          <label class="govuk-label" for="option-value">
+            Value (optional)
+          </label>
+          <div class="govuk-hint">
+            The value that will be submitted when this option is selected. If not provided, the option text will be used.
+          </div>
+          <input class="govuk-input" id="option-value" name="value" type="text" value="{{ data.value }}" spellcheck="false">
+        </div>
+
+        <input type="hidden" name="id" value="{{ data.id }}">
+        <input type="hidden" name="questionId" value="{{ data.questionId }}">
+        <input type="hidden" name="pageId" value="{{ data.pageId }}">
+        <input type="hidden" name="fieldType" value="{{ params.fieldType }}">
+        <input type="hidden" name="returnUrl" value="{{ params.returnUrl }}">
+
+        <div class="govuk-button-group">
+          <button class="govuk-button" data-module="govuk-button">
+            Save option
+          </button>
+          <a href="{{ params.returnUrl }}" class="govuk-link">
+            Cancel
+          </a>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block pageScripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', (event) => {
+    const form = document.querySelector('[data-option-form]');
+    const questionId = document.querySelector('input[name="questionId"]').value;
+    const pageId = document.querySelector('input[name="pageId"]').value;
+    const optionId = document.querySelector('input[name="id"]').value;
+    const fieldType = document.querySelector('input[name="fieldType"]').value;
+
+    if (form) {
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        // Get form data
+        const text = document.querySelector('#option-text').value.trim();
+        const hint = document.querySelector('#option-hint').value.trim();
+        const value = document.querySelector('#option-value').value.trim();
+
+        if (!text) {
+          alert('Option text is required');
+          return;
+        }
+
+        // Get existing question data
+        let questionData;
+        try {
+          questionData = JSON.parse(localStorage.getItem(questionId) || '{}');
+        } catch (error) {
+          console.error('Error parsing question data:', error);
+          questionData = {};
+        }
+
+        // Initialize options array if it doesn't exist
+        if (!questionData.options) {
+          questionData.options = [];
+        }
+
+        // Create or update option
+        const option = {
+          id: optionId || `option_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          text: text,
+          hint: hint || undefined,
+          value: value || undefined
+        };
+
+        // Add or update the option
+        const existingIndex = questionData.options.findIndex(opt => opt.id === option.id);
+        if (existingIndex >= 0) {
+          questionData.options[existingIndex] = option;
+        } else {
+          questionData.options.push(option);
+        }
+
+        // Save question data
+        localStorage.setItem(questionId, JSON.stringify(questionData));
+
+        // Update page data
+        const pageDataStr = localStorage.getItem(pageId);
+        let pageData;
+        try {
+          pageData = pageDataStr ? JSON.parse(pageDataStr) : { questions: [] };
+        } catch (error) {
+          console.error('Error parsing page data:', error);
+          pageData = { questions: [] };
+        }
+        
+        // Find and update question in page data
+        const questionIndex = pageData.questions.findIndex(q => q.id === questionId);
+        if (questionIndex >= 0) {
+          pageData.questions[questionIndex] = questionData;
+        } else {
+          pageData.questions.push(questionData);
+        }
+        
+        localStorage.setItem(pageId, JSON.stringify(pageData));
+
+        // Submit the form to return to question editor
+        form.submit();
+      });
+    }
+  });
+</script>
+{% endblock %}

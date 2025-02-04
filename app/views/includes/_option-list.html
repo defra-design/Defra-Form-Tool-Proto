@@ -1,0 +1,240 @@
+{# Debug output #}
+<!-- Template version: v2 -->
+<!-- Data available: {{ data | dump }} -->
+
+<div class="govuk-form-group" data-option-list>
+  <h2 class="govuk-heading-m">Options</h2>
+  
+  <p class="govuk-body">Add an option or import from a list</p>
+
+  <div class="govuk-button-group govuk-!-margin-bottom-6">
+    <a href="/option-editor/{{ params.type }}?questionId={{ params.id }}&pageId={{ params.pageId }}&returnUrl=/question-editor/{{ params.type }}/{{ params.id }}%3FpageId={{ params.pageId }}" 
+       class="govuk-button govuk-button--secondary" 
+       data-module="govuk-button"
+       role="button">
+      Add option
+    </a>
+  </div>
+    
+  <div class="govuk-form-group">
+    <label class="govuk-label" for="import-list">
+      Import from list
+    </label>
+    <div class="govuk-grid-row">
+      <div class="govuk-grid-column-two-thirds">
+        <select class="govuk-select" id="import-list" name="import-list">
+          <option value="">Select a list</option>
+        </select>
+      </div>
+      <div class="govuk-grid-column-one-third">
+        <button type="button" class="govuk-button govuk-button--secondary" data-import-list>
+          Import
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <table class="govuk-table">
+    <caption class="govuk-table__caption govuk-visually-hidden">List of options for this question</caption>
+    <thead class="govuk-table__head">
+      <tr class="govuk-table__row">
+        <th scope="col" class="govuk-table__header">Option text</th>
+        <th scope="col" class="govuk-table__header govuk-table__header--numeric">Actions</th>
+      </tr>
+    </thead>
+    <tbody class="govuk-table__body">
+      {# Options will be rendered here by JavaScript #}
+    </tbody>
+  </table>
+</div>
+
+<!-- Template for option rows -->
+<template id="option-row-template">
+  <tr class="govuk-table__row">
+    <td class="govuk-table__cell">
+      <span class="govuk-body"></span>
+    </td>
+    <td class="govuk-table__cell govuk-table__cell--numeric">
+      <div class="govuk-button-group">
+        <button type="button" class="govuk-button govuk-button--secondary govuk-button--small" data-move-up>
+          ↑<span class="govuk-visually-hidden">Move up</span>
+        </button>
+        <button type="button" class="govuk-button govuk-button--secondary govuk-button--small" data-move-down>
+          ↓<span class="govuk-visually-hidden">Move down</span>
+        </button>
+        <button type="button" class="govuk-button govuk-button--warning govuk-button--small" data-delete-option>
+          ×<span class="govuk-visually-hidden">Delete</span>
+        </button>
+      </div>
+    </td>
+  </tr>
+</template>
+
+<script>
+  // Get form elements
+  const form = document.querySelector('[data-question-form]');
+  const optionsList = document.querySelector('[data-option-list]');
+  const optionRowTemplate = document.querySelector('#option-row-template');
+  const questionId = form.querySelector('input[name="id"]').value;
+  const importListSelect = document.querySelector('#import-list');
+  const importListButton = document.querySelector('[data-import-list]');
+
+  // Function to create a new option row
+  function createOptionRow(text, optionId = null) {
+    const row = optionRowTemplate.content.cloneNode(true);
+    const rowElement = row.querySelector('tr');
+    rowElement.setAttribute('data-option-id', optionId || `option_${Date.now()}`);
+    row.querySelector('span.govuk-body').textContent = text;
+    return row;
+  }
+
+  // Function to save options to localStorage
+  function saveOptions() {
+    const options = [];
+    optionsList.querySelectorAll('tbody tr').forEach(row => {
+      const optionId = row.getAttribute('data-option-id');
+      const text = row.querySelector('span.govuk-body').textContent;
+      
+      if (text && text.trim()) {
+        options.push({ id: optionId, text: text.trim() });
+      }
+    });
+
+    // Get existing question data
+    const questionDataStr = localStorage.getItem(questionId);
+    const questionData = questionDataStr ? JSON.parse(questionDataStr) : {};
+    
+    // Update options
+    questionData.options = options;
+    
+    // Save back to localStorage
+    localStorage.setItem(questionId, JSON.stringify(questionData));
+
+    // Update preview if available
+    if (window.GOVUKPrototype?.OptionManager) {
+      const manager = new window.GOVUKPrototype.OptionManager(optionsList);
+      manager.options = options;
+      manager.updatePreview();
+    }
+  }
+
+  // Load existing options
+  function loadOptions() {
+    const questionDataStr = localStorage.getItem(questionId);
+    if (questionDataStr) {
+      const questionData = JSON.parse(questionDataStr);
+      
+      // Add each option
+      if (questionData.options && Array.isArray(questionData.options)) {
+        const tbody = optionsList.querySelector('tbody');
+        tbody.innerHTML = ''; // Clear existing options
+        
+        questionData.options.forEach(option => {
+          if (option.text && option.text.trim()) {
+            const row = createOptionRow(option.text, option.id);
+            tbody.appendChild(row);
+          }
+        });
+      }
+    }
+  }
+
+  // Load predefined lists into dropdown
+  async function loadPredefinedLists() {
+    try {
+      const response = await fetch('/api/lists');
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const listsData = await response.json();
+      
+      // Clear existing options except the first one
+      while (importListSelect.options.length > 1) {
+        importListSelect.remove(1);
+      }
+      
+      // Add each list as an option
+      Object.entries(listsData).forEach(([id, list]) => {
+        const option = document.createElement('option');
+        option.value = id;
+        option.textContent = list.name;
+        importListSelect.appendChild(option);
+      });
+    } catch (error) {
+      console.error('Error loading predefined lists:', error);
+    }
+  }
+
+  // Import options from selected list
+  async function importListOptions() {
+    const selectedList = importListSelect.value;
+    if (!selectedList) return;
+
+    try {
+      const response = await fetch('/api/lists');
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const listsData = await response.json();
+      const selectedListData = listsData[selectedList];
+
+      if (selectedListData && selectedListData.options) {
+        // Clear existing options if user confirms
+        if (optionsList.querySelector('tbody').children.length > 0) {
+          if (!confirm('This will replace your existing options. Continue?')) {
+            return;
+          }
+          optionsList.querySelector('tbody').innerHTML = '';
+        }
+
+        // Add each option from the list
+        selectedListData.options.forEach(option => {
+          const row = createOptionRow(option.text, option.value);
+          optionsList.querySelector('tbody').appendChild(row);
+        });
+
+        // Save the new options
+        saveOptions();
+      }
+    } catch (error) {
+      console.error('Error importing list options:', error);
+    }
+  }
+
+  // Event Listeners
+  // Move and delete buttons (using event delegation)
+  optionsList.addEventListener('click', (e) => {
+    const button = e.target.closest('button');
+    if (!button) return;
+
+    const row = button.closest('tr');
+    const tbody = row.parentNode;
+    const rows = Array.from(tbody.children);
+    const index = rows.indexOf(row);
+
+    if (button.matches('[data-move-up]') && index > 0) {
+      tbody.insertBefore(row, rows[index - 1]);
+      saveOptions();
+    } else if (button.matches('[data-move-down]') && index < rows.length - 1) {
+      tbody.insertBefore(rows[index + 1], row);
+      saveOptions();
+    } else if (button.matches('[data-delete-option]')) {
+      if (confirm('Are you sure you want to delete this option?')) {
+        row.remove();
+        saveOptions();
+      }
+    }
+  });
+
+  // Import list button
+  if (importListButton) {
+    importListButton.addEventListener('click', importListOptions);
+  }
+
+  // Initialize
+  loadPredefinedLists();
+  loadOptions();
+
+  // Log for debugging
+  console.log('Option list initialized');
+</script>

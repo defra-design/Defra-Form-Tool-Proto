@@ -1,0 +1,57 @@
+{# app/views/page-editor.html #}
+{% extends "layouts/main.html" %}
+
+{% block content %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-full">
+    <form class="form" data-module="page-editor" data-page-form>
+      <input type="hidden" name="pageId" value="{{ params.pageId }}">
+
+      <h1 class="govuk-heading-l" data-page-title>
+        {% if data.title %}
+          Edit "{{ data.title }}"
+        {% else %}
+          Add a new page
+        {% endif %}
+      </h1>
+
+      <div class="govuk-button-group govuk-!-margin-bottom-6">
+        <a href="/field-types?pageId={{ params.pageId }}" class="govuk-button" data-add-field>
+          Add a new field
+        </a>
+      </div>
+
+      <h2 class="govuk-heading-m">Fields on this page</h2>
+      <div data-fields-list>
+        <table class="govuk-table" data-questions-table>
+          <thead class="govuk-table__head">
+            <tr class="govuk-table__row">
+              <th class="govuk-table__header">Field</th>
+              <th class="govuk-table__header">Type</th>
+              <th class="govuk-table__header" colspan="2"><span class="govuk-visually-hidden">Actions</span></th>
+            </tr>
+          </thead>
+          <tbody class="govuk-table__body">
+          </tbody>
+        </table>
+      </div>
+
+      <div class="govuk-button-group">
+        <a href="/pages" class="govuk-button" data-save>
+          Done
+        </a>
+        <a href="/pages" class="govuk-button govuk-button--secondary">
+          Cancel
+        </a>
+        <p class="govuk-body govuk-!-margin-top-2">
+          <span class="govuk-hint">All changes are saved automatically</span>
+        </p>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block pageScripts %}
+<script src="/public/javascripts/page-editor.js"></script>
+{% endblock %}

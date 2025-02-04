@@ -1,0 +1,86 @@
+{# app/views/includes/_question-preview.html #}
+<div class="govuk-form-group">
+  <h1 class="govuk-label-wrapper">
+	<label class="govuk-label govuk-label--l" for="preview-field">
+	  {{ data.title or "Question preview" }}
+	</label>
+  </h1>
+
+  {% if data.hint %}
+	<div id="preview-hint" class="govuk-hint">
+	  {{ data.hint }}
+	</div>
+  {% endif %}
+
+  {% if data.fieldType == 'text' %}
+	<input class="govuk-input" id="preview-field" name="preview-answer" type="text"
+		   {% if not data.title %}disabled{% endif %}
+		   aria-describedby="preview-hint">
+
+  {% elif data.fieldType == 'textarea' %}
+	<textarea class="govuk-textarea" id="preview-field" name="preview-answer"
+			  rows="5" {% if not data.title %}disabled{% endif %}
+			  aria-describedby="preview-hint"></textarea>
+
+  {% elif data.fieldType == 'radio' %}
+	<div class="govuk-radios" data-module="govuk-radios">
+	  {% if data.options and data.options.length > 0 %}
+		{% for option in data.options %}
+		  <div class="govuk-radios__item">
+			<input class="govuk-radios__input" 
+				   id="preview-answer-{{ loop.index }}" 
+				   name="preview-answer" 
+				   type="radio" 
+				   value="{{ option.value }}"
+				   {% if option.hint %}aria-describedby="preview-hint-{{ loop.index }}"{% endif %}
+				   {% if loop.first %}aria-describedby="preview-hint"{% endif %}>
+			<label class="govuk-label govuk-radios__label" for="preview-answer-{{ loop.index }}">
+			  {{ option.text }}
+			</label>
+			{% if option.hint %}
+			  <div id="preview-hint-{{ loop.index }}" class="govuk-hint govuk-radios__hint">
+				{{ option.hint }}
+			  </div>
+			{% endif %}
+		  </div>
+		{% endfor %}
+	  {% endif %}
+	</div>
+
+  {% elif data.fieldType == 'checkbox' %}
+	<div class="govuk-checkboxes" data-module="govuk-checkboxes">
+	  {% if data.options and data.options.length > 0 %}
+		{% for option in data.options %}
+		  <div class="govuk-checkboxes__item">
+			<input class="govuk-checkboxes__input" 
+				   id="preview-answer-{{ loop.index }}" 
+				   name="preview-answer" 
+				   type="checkbox" 
+				   value="{{ option.value }}"
+				   {% if option.hint %}aria-describedby="preview-hint-{{ loop.index }}"{% endif %}
+				   {% if loop.first %}aria-describedby="preview-hint"{% endif %}>
+			<label class="govuk-label govuk-checkboxes__label" for="preview-answer-{{ loop.index }}">
+			  {{ option.text }}
+			</label>
+			{% if option.hint %}
+			  <div id="preview-hint-{{ loop.index }}" class="govuk-hint govuk-checkboxes__hint">
+				{{ option.hint }}
+			  </div>
+			{% endif %}
+		  </div>
+		{% endfor %}
+	  {% endif %}
+	</div>
+
+  {% elif data.fieldType == 'select' %}
+    <select class="govuk-select" id="preview-field" name="preview-answer"
+            {% if not data.title %}disabled{% endif %}
+            aria-describedby="preview-hint">
+      {% if data.options and data.options.length > 0 %}
+        {% for option in data.options %}
+          <option value="{{ option.value }}">{{ option.text }}</option>
+        {% endfor %}
+      {% endif %}
+    </select>
+  {% endif %}
+</div>

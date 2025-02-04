@@ -1,0 +1,41 @@
+{# app/views/field-types/date.html #}
+<div class="govuk-form-group">
+  <fieldset class="govuk-fieldset" role="group" aria-describedby="{% if data.hint %}{{ data.id }}-hint{% endif %} {{ data.id }}-fieldset">
+    <legend class="govuk-fieldset__legend govuk-fieldset__legend--l">
+      <h1 class="govuk-fieldset__heading">
+        {{ data.title }}
+      </h1>
+    </legend>
+    {% if data.hint %}
+    <div id="{{ data.id }}-hint" class="govuk-hint">
+      {{ data.hint }}
+    </div>
+    {% endif %}
+    <div class="govuk-date-input" id="{{ data.id }}">
+      <div class="govuk-date-input__item">
+        <div class="govuk-form-group">
+          <label class="govuk-label govuk-date-input__label" for="{{ data.id }}-day">
+            Day
+          </label>
+          <input class="govuk-input govuk-date-input__input govuk-input--width-2" id="{{ data.id }}-day" name="{{ data.id }}-day" type="text" inputmode="numeric">
+        </div>
+      </div>
+      <div class="govuk-date-input__item">
+        <div class="govuk-form-group">
+          <label class="govuk-label govuk-date-input__label" for="{{ data.id }}-month">
+            Month
+          </label>
+          <input class="govuk-input govuk-date-input__input govuk-input--width-2" id="{{ data.id }}-month" name="{{ data.id }}-month" type="text" inputmode="numeric">
+        </div>
+      </div>
+      <div class="govuk-date-input__item">
+        <div class="govuk-form-group">
+          <label class="govuk-label govuk-date-input__label" for="{{ data.id }}-year">
+            Year
+          </label>
+          <input class="govuk-input govuk-date-input__input govuk-input--width-4" id="{{ data.id }}-year" name="{{ data.id }}-year" type="text" inputmode="numeric">
+        </div>
+      </div>
+    </div>
+  </fieldset>
+</div>

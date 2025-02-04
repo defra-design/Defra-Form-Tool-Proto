@@ -1,0 +1,37 @@
+{# app/views/page-create.html #}
+{% extends "layouts/main.html" %}
+
+{% block content %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds">
+    <form class="form" action="/page-create/save" method="post" novalidate>
+      <div class="govuk-form-group">
+        <h1 class="govuk-label-wrapper">
+          <label class="govuk-label govuk-label--l" for="page-title">
+            Name your page
+          </label>
+        </h1>
+
+        <div class="govuk-form-group">
+          <label class="govuk-label" for="page-title">
+            Page title
+          </label>
+          <div class="govuk-hint">
+            This will be shown as the heading at the top of the page
+          </div>
+          <input class="govuk-input" id="page-title" name="title" type="text" spellcheck="false" required>
+        </div>
+      </div>
+
+      <div class="govuk-button-group">
+        <button type="submit" class="govuk-button" data-module="govuk-button">
+          Save and continue
+        </button>
+        <a href="/pages" class="govuk-link">
+          Cancel
+        </a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
