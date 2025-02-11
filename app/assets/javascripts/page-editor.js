@@ -46,6 +46,61 @@
     })
   }
 
+  PageEditor.prototype.moveQuestion = function(questionId, direction) {
+    // Get all questions for this page
+    const questions = []
+    const keys = []
+    
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i)
+      if (key.startsWith('form_') && key !== 'form_pages') {
+        try {
+          const questionData = JSON.parse(localStorage.getItem(key))
+          if (questionData.pageId === this.pageId) {
+            questions.push({ ...questionData, key })
+            keys.push(key)
+          }
+        } catch (error) {
+          console.error('Error parsing question data:', error)
+        }
+      }
+    }
+    
+    // Sort questions by position
+    questions.sort((a, b) => {
+      const posA = typeof a.position === 'number' ? a.position : Infinity
+      const posB = typeof b.position === 'number' ? b.position : Infinity
+      return posA - posB
+    })
+    
+    // Find current question index
+    const currentIndex = questions.findIndex(q => q.key === questionId)
+    if (currentIndex === -1) return
+    
+    // Calculate new index
+    const newIndex = currentIndex + direction
+    if (newIndex < 0 || newIndex >= questions.length) return
+    
+    // Swap positions
+    const temp = questions[currentIndex].position
+    questions[currentIndex].position = questions[newIndex].position
+    questions[newIndex].position = temp
+    
+    // If either position is undefined, assign new positions
+    if (typeof questions[currentIndex].position !== 'number' || 
+        typeof questions[newIndex].position !== 'number') {
+      questions[currentIndex].position = newIndex
+      questions[newIndex].position = currentIndex
+    }
+    
+    // Save both questions
+    localStorage.setItem(questions[currentIndex].key, JSON.stringify(questions[currentIndex]))
+    localStorage.setItem(questions[newIndex].key, JSON.stringify(questions[newIndex]))
+    
+    // Refresh the display
+    this.loadPageData()
+  }
+
   PageEditor.prototype.init = function() {
     if (!this.$module) {
       console.error('Missing module')
@@ -102,6 +157,10 @@
           if (!question.fieldType) {
             console.warn('Question missing field type:', question);
           }
+          // Initialize position if not set
+          if (typeof question.position !== 'number') {
+            question.position = questions.size;
+          }
           questions.set(cleanId, {...question, id: cleanId})
           console.log('Added question from page data:', question)
         }
@@ -157,12 +216,18 @@
       }
     })
 
-    // Convert to array and sort by creation time (newest first)
+    // Convert to array and sort by position
     const sortedQuestions = Array.from(questions.values())
       .sort((a, b) => {
-        const timeA = parseInt((a.id || '').split('_')[2]) || 0
-        const timeB = parseInt((b.id || '').split('_')[2]) || 0
-        return timeB - timeA // Sort newest first
+        // First by position
+        const posA = typeof a.position === 'number' ? a.position : Infinity;
+        const posB = typeof b.position === 'number' ? b.position : Infinity;
+        if (posA !== posB) return posA - posB;
+        
+        // Then by creation time if positions are equal
+        const timeA = parseInt((a.id || '').split('_')[2]) || 0;
+        const timeB = parseInt((b.id || '').split('_')[2]) || 0;
+        return timeB - timeA;
       })
 
     console.log('Final sorted questions:', sortedQuestions)
@@ -184,8 +249,8 @@
       console.log('No questions to display')
       tbody.innerHTML = `
         <tr class="govuk-table__row">
-          <td class="govuk-table__cell" colspan="4">
-            <p class="govuk-body">No fields added yet. Choose a field type above to add your first field.</p>
+          <td class="govuk-table__cell" colspan="4" style="vertical-align: middle;">
+            <p class="govuk-body govuk-!-margin-0">No fields added yet. Choose a field type above to add your first field.</p>
           </td>
         </tr>
       `
@@ -211,16 +276,26 @@
       
       const row = document.createElement('tr')
       row.className = 'govuk-table__row'
+      row.setAttribute('data-question-id', cleanId)
       row.innerHTML = `
-        <td class="govuk-table__cell">${title}</td>
-        <td class="govuk-table__cell">${fieldTypeDisplay}</td>
-        <td class="govuk-table__cell">
-          <a href="${editUrl}" class="govuk-link govuk-!-margin-right-2">
-            Edit<span class="govuk-visually-hidden"> ${title}</span>
-          </a>
-          <a href="#" class="govuk-link govuk-link--danger" data-delete-field="${cleanId}">
-            Delete<span class="govuk-visually-hidden"> ${title}</span>
-          </a>
+        <td class="govuk-table__cell" style="vertical-align: middle;">
+          <a href="${editUrl}" class="govuk-link">${title}</a>
+        </td>
+        <td class="govuk-table__cell" style="vertical-align: middle;">${fieldTypeDisplay}</td>
+        <td class="govuk-table__cell" style="vertical-align: middle;">
+          <div class="govuk-button-group" style="margin-bottom: 0;">
+            <button type="button" class="govuk-button govuk-button--secondary govuk-button--small" data-move-up>
+              ↑<span class="govuk-visually-hidden">Move up</span>
+            </button>
+            <button type="button" class="govuk-button govuk-button--secondary govuk-button--small" data-move-down>
+              ↓<span class="govuk-visually-hidden">Move down</span>
+            </button>
+          </div>
+        </td>
+        <td class="govuk-table__cell" style="vertical-align: middle; text-align: right;">
+          <button type="button" class="govuk-button govuk-button--warning govuk-button--small govuk-!-margin-0" data-delete-field="${cleanId}">
+            ×<span class="govuk-visually-hidden">Delete</span>
+          </button>
         </td>
       `
       tbody.appendChild(row)
@@ -295,6 +370,31 @@
   }
 
   PageEditor.prototype.setupEventListeners = function() {
+    // Set up table event handlers
+    const tbody = document.querySelector('[data-questions-table] tbody')
+    if (tbody) {
+      tbody.addEventListener('click', (e) => {
+        const deleteLink = e.target.closest('[data-delete-field]')
+        const moveUpBtn = e.target.closest('[data-move-up]')
+        const moveDownBtn = e.target.closest('[data-move-down]')
+
+        if (deleteLink) {
+          e.preventDefault()
+          const fieldId = deleteLink.dataset.deleteField
+          if (confirm('Are you sure you want to delete this field?')) {
+            localStorage.removeItem(fieldId)
+            this.loadPageData()
+          }
+        } else if (moveUpBtn || moveDownBtn) {
+          e.preventDefault()
+          const row = e.target.closest('tr')
+          const questionId = row.dataset.questionId
+          const direction = moveUpBtn ? -1 : 1
+          this.moveQuestion(questionId, direction)
+        }
+      })
+    }
+
     // Add field button
     const addFieldButton = document.querySelector('[data-add-field]')
     if (addFieldButton) {
@@ -344,7 +444,8 @@
                 fieldType: questionData.fieldType,
                 title: questionData.title,
                 hint: questionData.hint,
-                options: questionData.options || []
+                options: questionData.options || [],
+                position: typeof questionData.position === 'number' ? questionData.position : questions.length
               })
             }
           } catch (error) {

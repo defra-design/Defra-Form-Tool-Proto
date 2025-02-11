@@ -381,7 +381,19 @@
 
     // Render each question
     if (page.questions && page.questions.length) {
-      page.questions.forEach(question => {
+      // Sort questions by position
+      const sortedQuestions = [...page.questions].sort((a, b) => {
+        const posA = typeof a.position === 'number' ? a.position : Infinity
+        const posB = typeof b.position === 'number' ? b.position : Infinity
+        if (posA !== posB) return posA - posB
+        
+        // Fall back to creation time if positions are equal
+        const timeA = parseInt((a.id || '').split('_')[2]) || 0
+        const timeB = parseInt((b.id || '').split('_')[2]) || 0
+        return timeB - timeA
+      })
+
+      sortedQuestions.forEach(question => {
         if (question && question.fieldType) {
           const template = fieldTemplates[question.fieldType]
           if (template) {
