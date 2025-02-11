@@ -33,3 +33,19 @@ code {
 .govuk-summary-list {
   margin-bottom: 30px;
 }
+
+/* header stuff */
+.app-header--full-width-border {
+  border-bottom: 10px solid #1f70b8;
+}
+
+.x-govuk-masthead {
+  background-color: #008531 !important;
+}
+
+.x-govuk-masthead  *{
+  color: #ffffff !important;
+}
+
+// bring in legacy styles from dan's proto (should probably clean up as its rather large)
+@import "legacy";

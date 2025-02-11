@@ -10,6 +10,13 @@ https://prototype-kit.service.gov.uk/docs/how-to-use-layouts
   <link href="/public/stylesheets/custom.css" rel="stylesheet">
 {% endblock %}
 
+{% block header %}
+{# Custom header appears on all pages except the homepage #}
+  {% if url != '/' %}
+    {% include "includes/_header.html" %}
+  {% endif %}
+{% endblock %}
+
 {% block bodyEnd %}
   {{ super() }}
   <script src="/public/javascripts/application.js"></script>
