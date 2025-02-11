@@ -186,6 +186,11 @@ router.get('/page-create', (req, res) => {
   res.render('page-create')
 })
 
+// Form preview
+router.get('/form-preview', (req, res) => {
+  res.render('form-preview')
+})
+
 // Save new page (just redirect to editor)
 router.post('/page-create/save', (req, res) => {
   if (!req.body.title || req.body.title.trim() === '') {
