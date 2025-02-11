@@ -3,88 +3,142 @@
 
 {% set pageTitle = "Choose field type - Forms Designer" %}
 
+{% block bodyEnd %}
+  {{ super() }}
+  <script src="/public/javascripts/field-types.js"></script>
+{% endblock %}
+
 {% block content %}
 <div class="govuk-grid-row">
   <div class="govuk-grid-column-two-thirds">
-    <h1 class="govuk-heading-l">
-      Add a new field
-    </h1>
+    <form id="field-type-form" action="/question-editor/new/text" method="get" data-type-form>
+      <input type="hidden" name="pageId" value="{{ data.pageId }}">
+      
+      <div class="govuk-form-group">
+        <fieldset class="govuk-fieldset" aria-describedby="field-type-hint">
+          <legend class="govuk-fieldset__legend govuk-fieldset__legend--l">
+            <h1 class="govuk-fieldset__heading">
+              Add a new field
+            </h1>
+          </legend>
+          <div id="field-type-hint" class="govuk-hint">
+            Choose what type of field you want to add to your form
+          </div>
 
-    <h2 class="govuk-heading-m">Text inputs</h2>
+          <div class="govuk-radios" data-module="govuk-radios">
+            <div class="govuk-radios__item">
+              <input class="govuk-radios__input" id="type-text" name="type" type="radio" value="text" aria-describedby="type-text-hint">
+              <label class="govuk-label govuk-radios__label" for="type-text">
+                Text input
+              </label>
+              <div id="type-text-hint" class="govuk-hint govuk-radios__hint">
+                Single line of text
+              </div>
+            </div>
 
-    <div class="govuk-grid-row">
-      <div class="govuk-grid-column-one-third">
-        <div class="govuk-body">
-          <a href="/question-editor/new/text?pageId={{ data.pageId }}" class="govuk-link">Text input</a>
-        </div>
-      </div>
-      <div class="govuk-grid-column-one-third">
-        <div class="govuk-body">
-          <a href="/question-editor/new/textarea?pageId={{ data.pageId }}" class="govuk-link">Text area</a>
-        </div>
-      </div>
-      <div class="govuk-grid-column-one-third">
-        <div class="govuk-body">
-          <a href="/question-editor/new/email?pageId={{ data.pageId }}" class="govuk-link">Email address</a>
-        </div>
-      </div>
-      <div class="govuk-grid-column-one-third">
-        <div class="govuk-body">
-          <a href="/question-editor/new/tel?pageId={{ data.pageId }}" class="govuk-link">Telephone number</a>
-        </div>
-      </div>
-      <div class="govuk-grid-column-one-third">
-        <div class="govuk-body">
-          <a href="/question-editor/new/number?pageId={{ data.pageId }}" class="govuk-link">Number</a>
-        </div>
-      </div>
-    </div>
+            <div class="govuk-radios__item">
+              <input class="govuk-radios__input" id="type-textarea" name="type" type="radio" value="textarea" aria-describedby="type-textarea-hint">
+              <label class="govuk-label govuk-radios__label" for="type-textarea">
+                Text area
+              </label>
+              <div id="type-textarea-hint" class="govuk-hint govuk-radios__hint">
+                Multiple lines of text
+              </div>
+            </div>
 
-    <h2 class="govuk-heading-m">Selection</h2>
+            <div class="govuk-radios__item">
+              <input class="govuk-radios__input" id="type-email" name="type" type="radio" value="email" aria-describedby="type-email-hint">
+              <label class="govuk-label govuk-radios__label" for="type-email">
+                Email address
+              </label>
+              <div id="type-email-hint" class="govuk-hint govuk-radios__hint">
+                With email format validation
+              </div>
+            </div>
 
-    <div class="govuk-grid-row">
-      <div class="govuk-grid-column-one-third">
-        <div class="govuk-body">
-          <a href="/question-editor/new/radio?pageId={{ data.pageId }}" class="govuk-link">Radio buttons</a>
-        </div>
+            <div class="govuk-radios__item">
+              <input class="govuk-radios__input" id="type-tel" name="type" type="radio" value="tel" aria-describedby="type-tel-hint">
+              <label class="govuk-label govuk-radios__label" for="type-tel">
+                Telephone number
+              </label>
+              <div id="type-tel-hint" class="govuk-hint govuk-radios__hint">
+                For phone numbers
+              </div>
+            </div>
+
+            <div class="govuk-radios__item">
+              <input class="govuk-radios__input" id="type-number" name="type" type="radio" value="number" aria-describedby="type-number-hint">
+              <label class="govuk-label govuk-radios__label" for="type-number">
+                Number
+              </label>
+              <div id="type-number-hint" class="govuk-hint govuk-radios__hint">
+                Numeric input only
+              </div>
+            </div>
+
+            <div class="govuk-radios__item">
+              <input class="govuk-radios__input" id="type-radio" name="type" type="radio" value="radio" aria-describedby="type-radio-hint">
+              <label class="govuk-label govuk-radios__label" for="type-radio">
+                Radio buttons
+              </label>
+              <div id="type-radio-hint" class="govuk-hint govuk-radios__hint">
+                Select one from multiple options
+              </div>
+            </div>
+
+            <div class="govuk-radios__item">
+              <input class="govuk-radios__input" id="type-checkbox" name="type" type="radio" value="checkbox" aria-describedby="type-checkbox-hint">
+              <label class="govuk-label govuk-radios__label" for="type-checkbox">
+                Checkboxes
+              </label>
+              <div id="type-checkbox-hint" class="govuk-hint govuk-radios__hint">
+                Select multiple options
+              </div>
+            </div>
+
+            <div class="govuk-radios__item">
+              <input class="govuk-radios__input" id="type-select" name="type" type="radio" value="select" aria-describedby="type-select-hint">
+              <label class="govuk-label govuk-radios__label" for="type-select">
+                Select
+              </label>
+              <div id="type-select-hint" class="govuk-hint govuk-radios__hint">
+                Dropdown list of options
+              </div>
+            </div>
+
+            <div class="govuk-radios__item">
+              <input class="govuk-radios__input" id="type-date" name="type" type="radio" value="date" aria-describedby="type-date-hint">
+              <label class="govuk-label govuk-radios__label" for="type-date">
+                Date input
+              </label>
+              <div id="type-date-hint" class="govuk-hint govuk-radios__hint">
+                Day, month and year fields
+              </div>
+            </div>
+
+            <div class="govuk-radios__item">
+              <input class="govuk-radios__input" id="type-file" name="type" type="radio" value="file" aria-describedby="type-file-hint">
+              <label class="govuk-label govuk-radios__label" for="type-file">
+                File upload
+              </label>
+              <div id="type-file-hint" class="govuk-hint govuk-radios__hint">
+                Allow file attachments
+              </div>
+            </div>
+          </div>
+        </fieldset>
       </div>
-      <div class="govuk-grid-column-one-third">
-        <div class="govuk-body">
-          <a href="/question-editor/new/checkbox?pageId={{ data.pageId }}" class="govuk-link">Checkboxes</a>
-        </div>
+
+      <div class="govuk-button-group">
+        <button type="submit" class="govuk-button" data-module="govuk-button">
+          Continue
+        </button>
+
+        <a href="/page-editor/{{ data.pageId }}" class="govuk-button govuk-button--secondary">
+          Back to page
+        </a>
       </div>
-      <div class="govuk-grid-column-one-third">
-        <div class="govuk-body">
-          <a href="/question-editor/new/select?pageId={{ data.pageId }}" class="govuk-link">Select</a>
-        </div>
-      </div>
-    </div>
-
-    <h2 class="govuk-heading-m">Date and time</h2>
-
-    <div class="govuk-grid-row">
-      <div class="govuk-grid-column-one-third">
-        <div class="govuk-body">
-          <a href="/question-editor/new/date?pageId={{ data.pageId }}" class="govuk-link">Date input</a>
-        </div>
-      </div>
-    </div>
-
-    <h2 class="govuk-heading-m">Files</h2>
-
-    <div class="govuk-grid-row">
-      <div class="govuk-grid-column-one-third">
-        <div class="govuk-body">
-          <a href="/question-editor/new/file?pageId={{ data.pageId }}" class="govuk-link">File upload</a>
-        </div>
-      </div>
-    </div>
-
-    <div class="govuk-button-group govuk-!-margin-top-6">
-      <a href="/page-editor/{{ data.pageId }}" class="govuk-button govuk-button--secondary">
-        Back to page
-      </a>
-    </div>
+    </form>
   </div>
 </div>
 {% endblock %}

@@ -191,6 +191,18 @@ router.get('/form-preview', (req, res) => {
   res.render('form-preview')
 })
 
+// Question preview
+router.post('/preview', (req, res) => {
+  res.render('includes/_question-preview', {
+    data: {
+      title: req.body.title,
+      hint: req.body.hint,
+      fieldType: req.body.fieldType,
+      options: req.body.options || []
+    }
+  })
+})
+
 // Save new page (just redirect to editor)
 router.post('/page-create/save', (req, res) => {
   if (!req.body.title || req.body.title.trim() === '') {
@@ -215,11 +227,6 @@ router.post('/page-create/save', (req, res) => {
       window.location.href = '/page-editor/${pageId}?title=${encodeURIComponent(title)}';
     </script>
   `);
-})
-
-// Form preview
-router.get('/form-preview', (req, res) => {
-  res.render('form-preview')
 })
 
 // Lists API - read from JSON file

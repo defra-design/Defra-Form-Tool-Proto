@@ -28,6 +28,24 @@
     return null
   }
 
+  PageEditor.prototype.cleanupInvalidEntries = function() {
+    const keys = Object.keys(localStorage)
+    keys.forEach(key => {
+      if (key.startsWith('form_')) {
+        try {
+          const data = JSON.parse(localStorage.getItem(key))
+          if (!data || !data.fieldType || !data.pageId || (!data.title && (!data.options || data.options.length === 0))) {
+            console.log('Removing invalid entry:', key)
+            localStorage.removeItem(key)
+          }
+        } catch (error) {
+          console.error('Error parsing localStorage entry:', error)
+          localStorage.removeItem(key)
+        }
+      }
+    })
+  }
+
   PageEditor.prototype.init = function() {
     if (!this.$module) {
       console.error('Missing module')
@@ -38,6 +56,9 @@
       console.error('Invalid or missing pageId:', this.pageId)
       return
     }
+
+    // Clean up invalid entries
+    this.cleanupInvalidEntries()
 
     // Load page data
     this.loadPageData()
@@ -97,9 +118,21 @@
           const question = JSON.parse(localStorage.getItem(key))
           console.log('Found question in localStorage:', { key, question })
           
+          // Skip questions that are empty or missing required fields
+          if (!question || !question.fieldType || !question.pageId) {
+            console.log('Skipping invalid question:', question)
+            return
+          }
+
+          // Skip questions with empty title and no options
+          if (!question.title && (!question.options || question.options.length === 0)) {
+            console.log('Skipping empty question:', question)
+            return
+          }
+          
           // Normalize the pageId to handle both prefixed and unprefixed versions
           const questionPageId = question.pageId?.startsWith('page_') ? question.pageId : 'page_' + question.pageId
-          if (question && questionPageId === this.pageId) {
+          if (questionPageId === this.pageId) {
             // Clean the ID and ensure it has form_ prefix
             const cleanId = 'form_' + key.replace(/^(form_)+/, '')
             

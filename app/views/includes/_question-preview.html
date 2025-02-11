@@ -18,9 +18,11 @@
 		   aria-describedby="preview-hint">
 
   {% elif data.fieldType == 'textarea' %}
-	<textarea class="govuk-textarea" id="preview-field" name="preview-answer"
-			  rows="5" {% if not data.title %}disabled{% endif %}
-			  aria-describedby="preview-hint"></textarea>
+    <div class="govuk-form-group">
+      <textarea class="govuk-textarea" id="preview-field" name="preview-answer"
+                rows="5" {% if not data.title %}disabled{% endif %}
+                {% if data.hint %}aria-describedby="preview-hint"{% endif %}></textarea>
+    </div>
 
   {% elif data.fieldType == 'radio' %}
 	<div class="govuk-radios" data-module="govuk-radios">
@@ -82,5 +84,54 @@
         {% endfor %}
       {% endif %}
     </select>
+
+  {% elif data.fieldType == 'date' %}
+    <div class="govuk-date-input" id="preview-date">
+      <div class="govuk-date-input__item">
+        <div class="govuk-form-group">
+          <label class="govuk-label govuk-date-input__label" for="preview-date-day">
+            Day
+          </label>
+          <input class="govuk-input govuk-date-input__input govuk-input--width-2" 
+                 id="preview-date-day" 
+                 name="preview-date-day" 
+                 type="text" 
+                 pattern="[0-9]*" 
+                 inputmode="numeric"
+                 {% if not data.title %}disabled{% endif %}
+                 {% if data.hint %}aria-describedby="preview-hint"{% endif %}>
+        </div>
+      </div>
+      <div class="govuk-date-input__item">
+        <div class="govuk-form-group">
+          <label class="govuk-label govuk-date-input__label" for="preview-date-month">
+            Month
+          </label>
+          <input class="govuk-input govuk-date-input__input govuk-input--width-2" 
+                 id="preview-date-month" 
+                 name="preview-date-month" 
+                 type="text" 
+                 pattern="[0-9]*" 
+                 inputmode="numeric"
+                 {% if not data.title %}disabled{% endif %}
+                 {% if data.hint %}aria-describedby="preview-hint"{% endif %}>
+        </div>
+      </div>
+      <div class="govuk-date-input__item">
+        <div class="govuk-form-group">
+          <label class="govuk-label govuk-date-input__label" for="preview-date-year">
+            Year
+          </label>
+          <input class="govuk-input govuk-date-input__input govuk-input--width-4" 
+                 id="preview-date-year" 
+                 name="preview-date-year" 
+                 type="text" 
+                 pattern="[0-9]*" 
+                 inputmode="numeric"
+                 {% if not data.title %}disabled{% endif %}
+                 {% if data.hint %}aria-describedby="preview-hint"{% endif %}>
+        </div>
+      </div>
+    </div>
   {% endif %}
 </div>
