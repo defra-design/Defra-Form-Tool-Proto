@@ -1,6 +1,8 @@
 {# app/views/question-editor.html #}
 {% extends "layouts/main.html" %}
 
+{% set pageTitle = params.type | capitalize + " field - Forms Designer" %}
+
 {% block pageTitle %}
   Question Editor – {{ params.type | capitalize }} Question
 {% endblock %}
