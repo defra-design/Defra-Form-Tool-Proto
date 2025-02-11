@@ -2,7 +2,7 @@
 <div class="govuk-form-group">
   <h1 class="govuk-label-wrapper">
 	<label class="govuk-label govuk-label--l" for="preview-field">
-	  {{ data.title or "Question preview" }}
+	  {{ data.title or "Enter your question" }}
 	</label>
   </h1>
 
@@ -10,10 +10,15 @@
 	<div id="preview-hint" class="govuk-hint">
 	  {{ data.hint }}
 	</div>
+  {% else %}
+    <div id="preview-hint" class="govuk-hint">
+      Add hint text to help users answer this question
+    </div>
   {% endif %}
 
   {% if data.fieldType == 'text' %}
 	<input class="govuk-input" id="preview-field" name="preview-answer" type="text"
+		   placeholder="Text input field"
 		   {% if not data.title %}disabled{% endif %}
 		   aria-describedby="preview-hint">
 
@@ -21,8 +26,31 @@
     <div class="govuk-form-group">
       <textarea class="govuk-textarea" id="preview-field" name="preview-answer"
                 rows="5" {% if not data.title %}disabled{% endif %}
+                placeholder="Long answer text field"
                 {% if data.hint %}aria-describedby="preview-hint"{% endif %}></textarea>
     </div>
+
+  {% elif data.fieldType == 'email' %}
+    <input class="govuk-input" id="preview-field" name="preview-answer" type="email"
+           placeholder="name@example.com"
+           spellcheck="false"
+           {% if not data.title %}disabled{% endif %}
+           aria-describedby="preview-hint">
+
+  {% elif data.fieldType == 'tel' %}
+    <input class="govuk-input govuk-input--width-10" id="preview-field" name="preview-answer" type="tel"
+           placeholder="07700 900000"
+           autocomplete="tel"
+           {% if not data.title %}disabled{% endif %}
+           aria-describedby="preview-hint">
+
+  {% elif data.fieldType == 'number' %}
+    <input class="govuk-input govuk-input--width-5" id="preview-field" name="preview-answer" type="number"
+           placeholder="0"
+           pattern="[0-9]*"
+           inputmode="numeric"
+           {% if not data.title %}disabled{% endif %}
+           aria-describedby="preview-hint">
 
   {% elif data.fieldType == 'radio' %}
 	<div class="govuk-radios" data-module="govuk-radios">
@@ -46,6 +74,13 @@
 			{% endif %}
 		  </div>
 		{% endfor %}
+	  {% else %}
+      <div class="govuk-radios__item">
+        <input class="govuk-radios__input" id="preview-answer-empty" name="preview-answer" type="radio" disabled>
+        <label class="govuk-label govuk-radios__label" for="preview-answer-empty">
+          Add options for users to choose from
+        </label>
+      </div>
 	  {% endif %}
 	</div>
 
@@ -71,6 +106,13 @@
 			{% endif %}
 		  </div>
 		{% endfor %}
+	  {% else %}
+      <div class="govuk-checkboxes__item">
+        <input class="govuk-checkboxes__input" id="preview-answer-empty" name="preview-answer" type="checkbox" disabled>
+        <label class="govuk-label govuk-checkboxes__label" for="preview-answer-empty">
+          Add options for users to select
+        </label>
+      </div>
 	  {% endif %}
 	</div>
 
@@ -82,6 +124,8 @@
         {% for option in data.options %}
           <option value="{{ option.value }}">{{ option.text }}</option>
         {% endfor %}
+      {% else %}
+        <option value="" disabled selected>Add options to select from</option>
       {% endif %}
     </select>
 
