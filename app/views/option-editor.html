@@ -4,7 +4,7 @@
 {% block content %}
 <div class="govuk-grid-row">
   <div class="govuk-grid-column-two-thirds">
-    <form class="form" action="/option-editor/{{ data.id }}/save" method="post" data-option-form>
+    <form class="form" data-option-form novalidate>
       <div class="govuk-form-group">
         <h1 class="govuk-label-wrapper">
           <label class="govuk-label govuk-label--l" for="option-text">
@@ -49,7 +49,7 @@
         <input type="hidden" name="returnUrl" value="{{ params.returnUrl }}">
 
         <div class="govuk-button-group">
-          <button class="govuk-button" data-module="govuk-button">
+          <button type="submit" class="govuk-button" data-module="govuk-button">
             Save option
           </button>
           <a href="{{ params.returnUrl }}" class="govuk-link">
@@ -63,85 +63,24 @@
 {% endblock %}
 
 {% block pageScripts %}
+<!-- Load the new modular scripts -->
+<script src="/public/javascripts/modules/storage-manager.js"></script>
+<script src="/public/javascripts/modules/option-editor.js"></script>
+<script src="/public/javascripts/options.js"></script>
+
 <script>
   document.addEventListener('DOMContentLoaded', (event) => {
-    const form = document.querySelector('[data-option-form]');
-    const questionId = document.querySelector('input[name="questionId"]').value;
-    const pageId = document.querySelector('input[name="pageId"]').value;
-    const optionId = document.querySelector('input[name="id"]').value;
-    const fieldType = document.querySelector('input[name="fieldType"]').value;
-
-    if (form) {
-      form.addEventListener('submit', (e) => {
-        e.preventDefault();
-
-        // Get form data
-        const text = document.querySelector('#option-text').value.trim();
-        const hint = document.querySelector('#option-hint').value.trim();
-        const value = document.querySelector('#option-value').value.trim();
-
-        if (!text) {
-          alert('Option text is required');
-          return;
-        }
-
-        // Get existing question data
-        let questionData;
-        try {
-          questionData = JSON.parse(localStorage.getItem(questionId) || '{}');
-        } catch (error) {
-          console.error('Error parsing question data:', error);
-          questionData = {};
-        }
-
-        // Initialize options array if it doesn't exist
-        if (!questionData.options) {
-          questionData.options = [];
-        }
-
-        // Create or update option
-        const option = {
-          id: optionId || `option_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-          text: text,
-          hint: hint || undefined,
-          value: value || undefined
-        };
-
-        // Add or update the option
-        const existingIndex = questionData.options.findIndex(opt => opt.id === option.id);
-        if (existingIndex >= 0) {
-          questionData.options[existingIndex] = option;
-        } else {
-          questionData.options.push(option);
-        }
-
-        // Save question data
-        localStorage.setItem(questionId, JSON.stringify(questionData));
-
-        // Update page data
-        const pageDataStr = localStorage.getItem(pageId);
-        let pageData;
-        try {
-          pageData = pageDataStr ? JSON.parse(pageDataStr) : { questions: [] };
-        } catch (error) {
-          console.error('Error parsing page data:', error);
-          pageData = { questions: [] };
-        }
-        
-        // Find and update question in page data
-        const questionIndex = pageData.questions.findIndex(q => q.id === questionId);
-        if (questionIndex >= 0) {
-          pageData.questions[questionIndex] = questionData;
-        } else {
-          pageData.questions.push(questionData);
-        }
-        
-        localStorage.setItem(pageId, JSON.stringify(pageData));
-
-        // Submit the form to return to question editor
-        form.submit();
-      });
+    console.log('DOM loaded, looking for form...');
+    const form = document.querySelector('form[data-option-form]');
+    if (!form) {
+      console.error('Form not found on page');
+      return;
     }
+    console.log('Form found:', form);
+
+    const storageManager = new Prototype.StorageManager();
+    const editor = new Prototype.OptionEditor(form, storageManager);
+    editor.init();
   });
 </script>
 {% endblock %}

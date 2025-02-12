@@ -1,0 +1,867 @@
+// Options management for GOV.UK Prototype Kit
+(function(window) {
+  'use strict';
+
+  // Initialize Prototype namespace if it doesn't exist
+  if (typeof window.Prototype === 'undefined') {
+    window.Prototype = {};
+  }
+
+  class OptionManager {
+  constructor(container) {
+    if (!container) throw new Error('Container element is required');
+    this.container = container;
+    this.$optionsList = container;
+    this.questionId = null;
+    this.pageId = null;
+    this.fieldType = null;
+    this.previewContainer = document.querySelector('[data-preview]');
+    
+    // Initialize lists data from localStorage if available
+    try {
+      const listsDataString = localStorage.getItem('lists');
+      if (listsDataString) {
+        this.listsData = JSON.parse(listsDataString);
+      }
+    } catch (error) {
+      console.warn('Error reading lists from localStorage:', error);
+      this.listsData = null;
+    }
+  }
+
+  init() {
+    // Initialize lists dropdown
+    this.initializeLists();
+    
+    // Load any saved options
+    this.loadSavedOptions();
+
+    // Set up import button handler
+    const importButton = this.container.querySelector('[data-import-list]');
+    if (importButton) {
+      importButton.addEventListener('click', () => this.importListOptions());
+    }
+  }
+
+  getQuestionData() {
+    try {
+      const data = localStorage.getItem(this.questionId);
+      return data ? JSON.parse(data) : null;
+    } catch (error) {
+      console.error('Error parsing question data:', error);
+      return null;
+    }
+  };
+
+  safeUpdateStorage(newData) {
+    if (!this.questionId) {
+      console.error('Cannot update storage: questionId not set');
+      return false;
+    }
+
+    try {
+      // Get existing data
+      const existingData = this.getQuestionData();
+      
+      // Safety check: Don't allow clearing existing data without confirmation
+      if (existingData && (!newData || !newData.options)) {
+        console.error('Attempted to clear existing data without confirmation');
+        return false;
+      }
+
+      // Safety check: Preserve existing data if new data is missing fields
+      if (existingData && newData) {
+        newData.id = newData.id || existingData.id;
+        newData.pageId = newData.pageId || existingData.pageId;
+        newData.fieldType = newData.fieldType || existingData.fieldType;
+        newData.title = newData.title || existingData.title;
+        newData.hint = newData.hint || existingData.hint;
+        newData.options = newData.options || existingData.options;
+      }
+
+      // Validate data structure
+      if (!this.validateQuestionData(newData)) {
+        console.error('Invalid data structure:', newData);
+        return false;
+      }
+
+      // Save to localStorage
+      localStorage.setItem(this.questionId, JSON.stringify(newData));
+      return true;
+    } catch (error) {
+      console.error('Error updating storage:', error);
+      return false;
+    }
+  };
+
+  validateQuestionData(data) {
+    if (!data || typeof data !== 'object') return false;
+    
+    // Required fields
+    if (!data.id || !data.pageId || !data.fieldType) return false;
+    
+    // Options must be an array if present
+    if (data.options && !Array.isArray(data.options)) return false;
+    
+    // Each option must have id and text
+    if (data.options) {
+      return data.options.every(option => 
+        option && 
+        typeof option === 'object' && 
+        option.id && 
+        typeof option.text === 'string'
+      );
+    }
+    
+    return true;
+  };
+
+  save() {
+    const questionData = this.getQuestionData() || {
+      id: this.questionId,
+      pageId: this.pageId,
+      fieldType: this.fieldType,
+      title: '',
+      hint: '',
+      options: []
+    };
+
+    // Get current title and hint
+    const titleInput = document.querySelector('[data-question-title]');
+    const hintInput = document.querySelector('[data-question-hint]');
+    if (titleInput) questionData.title = titleInput.value;
+    if (hintInput) questionData.hint = hintInput.value;
+
+    // Get current options from the table
+    const tbody = this.container.querySelector('tbody');
+    if (tbody) {
+      questionData.options = Array.from(tbody.querySelectorAll('tr')).map(row => ({
+        id: row.getAttribute('data-option-id'),
+        text: row.querySelector('.govuk-body').textContent.trim(),
+        hint: row.querySelector('.govuk-hint')?.textContent.trim() || '',
+        value: row.querySelector('.govuk-hint')?.textContent.trim().replace(/^Value: /, '') || ''
+      }));
+    }
+
+    // Safely update storage
+    if (this.safeUpdateStorage(questionData)) {
+      this.updatePreview();
+      return questionData;
+    }
+    return null;
+  };
+
+  renderFromStorage() {
+    const questionData = this.getQuestionData();
+    if (!questionData || !questionData.options) {
+      console.log('No options to render');
+      return;
+    }
+
+    // Clear existing options first
+    const tbody = this.container.querySelector('tbody');
+    if (tbody) {
+      tbody.innerHTML = '';
+    }
+
+    // Render each option
+    questionData.options.forEach((option, index) => {
+      this.renderOption(option, index, questionData.options.length);
+    });
+
+    // Update preview
+    this.updatePreview();
+  };
+
+  renderOption(option, index, total) {
+    if (!option || !option.text) return;
+
+    const row = document.createElement('tr');
+    row.setAttribute('data-option-id', option.id);
+    row.classList.add('govuk-table__row');
+    
+    row.innerHTML = `
+      <td class="govuk-table__cell">
+        <p class="govuk-body">${option.text}</p>
+      </td>
+      <td class="govuk-table__cell govuk-table__cell--numeric" style="white-space: nowrap;">
+        <div class="govuk-button-group">
+          <button class="govuk-button govuk-button--secondary govuk-!-margin-right-1" 
+                  data-move-up 
+                  ${index === 0 ? 'disabled' : ''}>
+            ↑<span class="govuk-visually-hidden">Move up</span>
+          </button>
+          <button class="govuk-button govuk-button--secondary govuk-!-margin-right-1" 
+                  data-move-down
+                  ${index === total - 1 ? 'disabled' : ''}>
+            ↓<span class="govuk-visually-hidden">Move down</span>
+          </button>
+          <a href="/option-editor/${this.fieldType}/${option.id}?questionId=${this.questionId}&pageId=${this.pageId}&returnUrl=/question-editor/${this.fieldType}/${this.questionId}%3FpageId=${this.pageId}" 
+             class="govuk-button govuk-button--secondary govuk-!-margin-right-1"
+             role="button">
+            Edit<span class="govuk-visually-hidden"> ${option.text}</span>
+          </a>
+          <button class="govuk-button govuk-button--warning" 
+                  data-delete-option>
+            ×<span class="govuk-visually-hidden">Delete ${option.text}</span>
+          </button>
+        </div>
+      </td>
+    `;
+
+    // Add event listeners
+    const moveUpBtn = row.querySelector('[data-move-up]');
+    const moveDownBtn = row.querySelector('[data-move-down]');
+    const deleteBtn = row.querySelector('[data-delete-option]');
+
+    if (moveUpBtn) {
+      moveUpBtn.addEventListener('click', () => this.moveOption(option.id, 'up'));
+    }
+    if (moveDownBtn) {
+      moveDownBtn.addEventListener('click', () => this.moveOption(option.id, 'down'));
+    }
+    if (deleteBtn) {
+      deleteBtn.addEventListener('click', () => this.deleteOption(option.id));
+    }
+
+    return row;
+  };
+
+  render() {
+    const tbody = this.container.querySelector('tbody');
+    if (!tbody) return;
+
+    // Clear existing rows
+    tbody.innerHTML = '';
+
+    // Get options from storage
+    const questionData = this.getQuestionData();
+    if (!questionData || !questionData.options) return;
+
+    const options = questionData.options;
+
+    // Show empty state if no options
+    if (options.length === 0) {
+      tbody.innerHTML = `
+        <tr class="govuk-table__row">
+          <td class="govuk-table__cell" colspan="2">
+            <p class="govuk-body govuk-!-margin-bottom-0">No options added yet</p>
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    // Render each option
+    options.forEach((option, index) => {
+      const row = this.renderOption(option, index, options.length);
+      if (row) {
+        tbody.appendChild(row);
+      }
+    });
+
+    // Update preview
+    this.updatePreview();
+  };
+
+  initializeLists() {
+    const select = this.container.querySelector('#import-list');
+    if (!select) {
+      console.error('Import list select not found');
+      return;
+    }
+
+    // Clear existing options except the first one
+    while (select.options.length > 1) {
+      select.remove(1);
+    }
+
+    // Try to get lists from localStorage
+    try {
+      const listsDataString = localStorage.getItem('lists');
+      if (listsDataString) {
+        this.listsData = JSON.parse(listsDataString);
+        
+        // Add lists to dropdown
+        Object.entries(this.listsData).forEach(([id, list]) => {
+          const option = document.createElement('option');
+          option.value = id;
+          option.textContent = list.name;
+          select.appendChild(option);
+        });
+      }
+    } catch (error) {
+      console.warn('Error loading lists from localStorage:', error);
+    }
+    const importButton = this.container.querySelector('[data-import-list]');
+    if (importButton) {
+      importButton.addEventListener('click', () => {
+        const listId = select.value;
+        if (!listId || !this.listsData || !this.listsData[listId]) {
+          console.error('No list selected or list data not found');
+          return;
+        }
+
+        const selectedList = this.listsData[listId];
+        console.log('Importing list:', selectedList);
+
+        // Get current data to preserve title and hint
+        const questionData = this.getQuestionData() || {
+          id: this.questionId,
+          pageId: this.pageId,
+          fieldType: this.fieldType,
+          title: '',
+          hint: '',
+          options: []
+        };
+
+        // Create new data object with only unique options
+        const newData = { ...questionData };
+        const seenTexts = new Set();
+        
+        if (selectedList.options && Array.isArray(selectedList.options)) {
+          newData.options = selectedList.options
+            .filter(option => {
+              const text = (option.text || option).trim();
+              if (!text || seenTexts.has(text.toLowerCase())) return false;
+              seenTexts.add(text.toLowerCase());
+              return true;
+            })
+            .map(option => ({
+              id: `option_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+              text: (option.text || option).trim(),
+              hint: option.hint || '',
+              value: option.value || ''
+            }));
+
+          // Safely update storage and render
+          if (this.safeUpdateStorage(newData)) {
+            // Clear existing options and render new ones
+            const tbody = this.container.querySelector('tbody');
+            if (tbody) tbody.innerHTML = '';
+            this.renderFromStorage();
+          }
+        }
+
+        // Clear the select
+        select.value = '';
+      });
+    }
+  };
+
+  setupEventListeners() {
+    if (!this.container) return;
+
+    // Handle option reordering and deletion using event delegation
+    const tbody = this.container.querySelector('tbody');
+    if (!tbody) {
+      console.error('Table body not found');
+      return;
+    }
+
+    // Remove any existing click handlers and bind handleClick to this instance
+    const boundHandleClick = this.handleClick.bind(this);
+    tbody.removeEventListener('click', boundHandleClick);
+    tbody.addEventListener('click', boundHandleClick);
+
+    // Handle title and hint changes
+    const titleInput = document.querySelector('[data-question-title]');
+    const hintInput = document.querySelector('[data-question-hint]');
+
+    if (titleInput) {
+      titleInput.addEventListener('input', () => {
+        this.save();
+      });
+    }
+
+    if (hintInput) {
+      hintInput.addEventListener('input', () => {
+        this.save();
+      });
+    }
+
+    // Handle new option input
+    const newOptionInput = this.container.querySelector('#new-option');
+    const addOptionButton = this.container.querySelector('[data-add-option]');
+    
+    if (newOptionInput && addOptionButton) {
+      const addNewOption = () => {
+        const text = newOptionInput.value.trim();
+        if (text) {
+          this.addOption({
+            id: `option_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            text: text
+          });
+          newOptionInput.value = '';
+        }
+      };
+
+      addOptionButton.addEventListener('click', addNewOption);
+      newOptionInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          addNewOption();
+        }
+      });
+    }
+  };
+
+  handleClick(e) {
+    if (!e || !e.target) return;
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    const button = e.target.closest('button');
+    if (!button) return;
+
+    const row = button.closest('tr');
+    if (!row) return;
+
+    const tbody = row.parentElement;
+    if (!tbody) return;
+
+    const rows = Array.from(tbody.children);
+    const currentIndex = rows.indexOf(row);
+
+    if (button.matches('[data-move-up]') && !button.disabled && currentIndex > 0) {
+      tbody.insertBefore(row, rows[currentIndex - 1]);
+      this.save();
+      this.updateButtonStates();
+    } else if (button.matches('[data-move-down]') && !button.disabled && currentIndex < rows.length - 1) {
+      tbody.insertBefore(row, rows[currentIndex + 1].nextSibling);
+      this.save();
+      this.updateButtonStates();
+    } else if (button.matches('[data-delete-option]')) {
+      if (confirm('Are you sure you want to delete this option?')) {
+        row.remove();
+        this.save();
+        this.updateButtonStates();
+      }
+    }
+  };
+
+  updateButtonStates() {
+    const tbody = this.container.querySelector('tbody');
+    if (!tbody) return;
+
+    const rows = Array.from(tbody.querySelectorAll('tr[data-option-id]'));
+    if (rows.length <= 1) return;
+
+    rows.forEach((row, index) => {
+      const upButton = row.querySelector('[data-move-up]');
+      const downButton = row.querySelector('[data-move-down]');
+
+      if (upButton) {
+        upButton.disabled = index === 0;
+      }
+      if (downButton) {
+        downButton.disabled = index === rows.length - 1;
+      }
+    });
+  };
+
+  updatePreview() {
+    // Find preview container if not already set
+    if (!this.previewContainer) {
+      this.previewContainer = document.querySelector('[data-preview]');
+      if (!this.previewContainer) {
+        console.error('Preview container not found');
+        return;
+      }
+    }
+
+    const questionData = this.getQuestionData();
+    if (!questionData) return;
+
+    const options = questionData.options || [];
+    const title = questionData.title || '';
+    const hint = questionData.hint || '';
+    const fieldType = questionData.fieldType || this.fieldType;
+
+    let optionsHtml = '';
+
+    if (fieldType === 'select') {
+      optionsHtml = options.map(option => `
+        <option value="${option.value || option.text}">${option.text}</option>
+      `).join('');
+    } else {
+      // For radio and checkbox types
+      optionsHtml = options.map((option, index) => `
+        <div class="${fieldType === 'radio' ? 'govuk-radios__item' : 'govuk-checkboxes__item'}">
+          <input class="${fieldType === 'radio' ? 'govuk-radios__input' : 'govuk-checkboxes__input'}"
+                 id="option${index}"
+                 name="option"
+                 type="${fieldType}"
+                 value="${option.value || option.text}">
+          <label class="govuk-label ${fieldType === 'radio' ? 'govuk-radios__label' : 'govuk-checkboxes__label'}"
+                 for="option${index}">
+            ${option.text}
+          </label>
+          ${option.hint ? `<div class="govuk-hint ${fieldType === 'radio' ? 'govuk-radios__hint' : 'govuk-checkboxes__hint'}">${option.hint}</div>` : ''}
+        </div>
+      `).join('');
+    }
+
+    const previewHtml = `
+      <div class="govuk-form-group">
+        <fieldset class="govuk-fieldset" aria-describedby="${hint ? 'question-hint' : ''}">
+          <legend class="govuk-fieldset__legend govuk-fieldset__legend--l">
+            <h1 class="govuk-fieldset__heading">${title || 'Question text'}</h1>
+          </legend>
+          ${hint ? `<div id="question-hint" class="govuk-hint">${hint}</div>` : ''}
+          ${fieldType === 'select' 
+            ? `<select class="govuk-select" id="question" name="question">${optionsHtml}</select>`
+            : `<div class="govuk-${fieldType}s" data-module="govuk-${fieldType}s">${optionsHtml}</div>`
+          }
+        </fieldset>
+      </div>
+    `;
+
+    this.previewContainer.innerHTML = previewHtml;
+  };
+
+  loadSavedOptions() {
+    try {
+      const questionData = this.getQuestionData();
+      if (questionData && questionData.options) {
+        if (questionData.options.length === 0) {
+          this.showEmptyState();
+        } else {
+          this.render();
+        }
+      } else {
+        this.showEmptyState();
+      }
+    } catch (error) {
+      console.error('Error loading saved options:', error);
+      this.showEmptyState();
+    }
+  }
+
+  showEmptyState() {
+    if (!this.$optionsList) return;
+
+    const tbody = this.$optionsList.querySelector('tbody');
+    if (tbody) {
+      tbody.innerHTML = `
+        <tr class="govuk-table__row">
+          <td class="govuk-table__cell" colspan="2">No options added yet</td>
+        </tr>
+      `;
+    }
+  }
+
+  importListOptions() {
+    const select = this.container.querySelector('#import-list');
+    if (!select) {
+      console.error('Import list select not found');
+      return;
+    }
+
+    const listId = select.value;
+    if (!listId || listId === 'default') {
+      console.error('Please select a list to import');
+      return;
+    }
+
+    // If we don't have lists data, try to get it from localStorage
+    if (!this.listsData) {
+      try {
+        const listsDataString = localStorage.getItem('lists');
+        if (listsDataString) {
+          this.listsData = JSON.parse(listsDataString);
+        }
+      } catch (error) {
+        console.warn('Error reading lists from localStorage:', error);
+      }
+    }
+
+    // If we still don't have lists data or the specific list, show error
+    if (!this.listsData || !this.listsData[listId]) {
+      console.error('List data not found. Please refresh the page and try again.');
+      return;
+    }
+
+    const selectedList = this.listsData[listId];
+    console.log('Importing list:', selectedList);
+
+    // Get current data to preserve title and hint
+    const questionData = this.getQuestionData() || {
+      id: this.questionId,
+      pageId: this.pageId,
+      fieldType: this.fieldType,
+      title: '',
+      hint: '',
+      options: []
+    };
+
+    // Create new data object with only unique options
+    const newData = { ...questionData };
+    const seenTexts = new Set();
+    
+    if (selectedList.options && Array.isArray(selectedList.options)) {
+      newData.options = selectedList.options
+        .filter(option => {
+          const text = (option.text || option).trim();
+          if (!text || seenTexts.has(text.toLowerCase())) return false;
+          seenTexts.add(text.toLowerCase());
+          return true;
+        })
+        .map(option => ({
+          id: `option_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          text: (option.text || option).trim(),
+          hint: option.hint || '',
+          value: option.value || ''
+        }));
+
+      // Safely update storage and render
+      if (this.safeUpdateStorage(newData)) {
+        // Clear existing options and render new ones
+        const tbody = this.container.querySelector('tbody');
+        if (tbody) tbody.innerHTML = '';
+        this.renderFromStorage();
+      }
+    }
+
+    // Clear the select
+    select.value = '';
+  }
+
+  addOption(option) {
+    if (!option || !option.text || option.text.trim() === '') {
+      console.log('Invalid option:', option);
+      return;
+    }
+
+    const questionData = this.getQuestionData() || {
+      id: this.questionId,
+      pageId: this.pageId,
+      fieldType: this.fieldType,
+      title: '',
+      hint: '',
+      options: []
+    };
+
+    // Check for duplicates
+    const isDuplicate = questionData.options.some(
+      existingOption => existingOption.text.trim() === option.text.trim()
+    );
+
+    if (isDuplicate) {
+      console.log('Duplicate option not added:', option.text);
+      return;
+    }
+
+    // Add the new option
+    questionData.options.push({
+      id: option.id || `option_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      text: option.text.trim(),
+      hint: option.hint || '',
+      value: option.value || ''
+    });
+
+    // Save and render
+    if (this.safeUpdateStorage(questionData)) {
+      this.render();
+    }
+  }
+
+  moveOption(optionId, direction) {
+    const questionData = this.getQuestionData();
+    if (!questionData || !questionData.options) return;
+
+    const currentIndex = questionData.options.findIndex(option => option.id === optionId);
+    if (currentIndex < 0) return;
+
+    let newIndex = currentIndex;
+
+    if (direction === 'up' && currentIndex > 0) {
+      newIndex = currentIndex - 1;
+    } else if (direction === 'down' && currentIndex < questionData.options.length - 1) {
+      newIndex = currentIndex + 1;
+    }
+
+    if (newIndex !== currentIndex) {
+      // Update the array order
+      const [movedOption] = questionData.options.splice(currentIndex, 1);
+      questionData.options.splice(newIndex, 0, movedOption);
+
+      // Save to localStorage
+      localStorage.setItem(this.questionId, JSON.stringify(questionData));
+
+      // Refresh the display
+      this.render();
+    }
+  }
+
+  deleteOption(optionId) {
+    const questionData = this.getQuestionData();
+    if (!questionData || !questionData.options) return;
+
+    const index = questionData.options.findIndex(option => option.id === optionId);
+    if (index < 0) return;
+
+    // Remove the option
+    questionData.options.splice(index, 1);
+
+    // Save to localStorage
+    localStorage.setItem(this.questionId, JSON.stringify(questionData));
+
+    // Refresh the display
+    this.render();
+  }
+}
+
+  // Define OptionEditor class before exposing it
+  class OptionEditor {
+    constructor($module) {
+      if (!$module) throw new Error('Module element is required');
+      this.$module = $module;
+      this.questionId = $module.querySelector('[name="questionId"]')?.value;
+      this.optionId = $module.querySelector('[name="id"]')?.value || '';
+      this.fieldType = $module.querySelector('[name="fieldType"]')?.value;
+      this.pageId = $module.querySelector('[name="pageId"]')?.value;
+    }
+
+    init() {
+      if (!this.$module || !this.questionId) {
+        console.warn('Missing required fields for OptionEditor');
+        return;
+      }
+
+      // Always try to load option data if we have an option ID
+      if (this.optionId) {
+        this.loadOptionData();
+      }
+
+      // Handle form submission
+      this.$module.addEventListener('submit', (event) => {
+        event.preventDefault();
+        if (this.saveOption()) {
+          window.location.href = `/question-editor/${this.questionId}/${this.fieldType}?pageId=${this.pageId}`;
+        }
+      });
+    }
+
+    loadOptionData() {
+      try {
+        const questionData = localStorage.getItem(this.questionId);
+        if (!questionData) return;
+
+        const data = JSON.parse(questionData);
+        if (!data || !data.options) return;
+
+        const option = data.options.find(opt => opt.id === this.optionId);
+        if (!option) return;
+
+        // Populate form fields
+        const textField = this.$module.querySelector('[name="text"]');
+        const valueField = this.$module.querySelector('[name="value"]');
+        const hintField = this.$module.querySelector('[name="hint"]');
+
+        if (textField) textField.value = option.text || '';
+        if (valueField) valueField.value = option.value || '';
+        if (hintField) hintField.value = option.hint || '';
+      } catch (error) {
+        console.error('Error loading option data:', error);
+      }
+    }
+
+    saveOption() {
+      try {
+        const textField = this.$module.querySelector('[name="text"]');
+        const valueField = this.$module.querySelector('[name="value"]');
+        const hintField = this.$module.querySelector('[name="hint"]');
+
+        if (!textField) {
+          console.error('Text field not found');
+          return false;
+        }
+
+        const text = textField.value.trim();
+        const value = valueField ? valueField.value.trim() : '';
+        const hint = hintField ? hintField.value.trim() : '';
+
+        if (!text) {
+          alert('Please enter option text');
+          return false;
+        }
+
+        let questionData = localStorage.getItem(this.questionId);
+        let data = questionData ? JSON.parse(questionData) : { options: [] };
+
+        if (this.optionId) {
+          // Update existing option
+          const index = data.options.findIndex(opt => opt.id === this.optionId);
+          if (index >= 0) {
+            data.options[index] = {
+              id: this.optionId,
+              text,
+              value,
+              hint
+            };
+          }
+        } else {
+          // Add new option
+          data.options.push({
+            id: Date.now().toString(),
+            text,
+            value,
+            hint
+          });
+        }
+
+        localStorage.setItem(this.questionId, JSON.stringify(data));
+        return true;
+      } catch (error) {
+        console.error('Error saving option:', error);
+        return false;
+      }
+    }
+  }
+
+  // Expose both classes to window.Prototype namespace
+  window.Prototype.OptionManager = OptionManager;
+  window.Prototype.OptionEditor = OptionEditor;
+
+  // Define initialization function
+  function initOptionEditors() {
+    const $optionForms = document.querySelectorAll('[data-option-form]');
+    $optionForms.forEach($form => {
+      const optionEditor = new window.Prototype.OptionEditor($form);
+      optionEditor.init();
+    });
+  }
+
+  // Initialize when DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initOptionEditors);
+  } else {
+    initOptionEditors();
+  }
+
+})(window);
+
+
+    localStorage.setItem(`form_${this.questionId}`, JSON.stringify(questionData));
+
+    // Update page data if needed
+    const pageData = JSON.parse(localStorage.getItem(`page_${this.pageId}`) || '{}');
+    pageData.questions = pageData.questions || [];
+    
+    const questionIndex = pageData.questions.findIndex(q => q.id === this.questionId);
+    if (questionIndex >= 0) {
+      pageData.questions[questionIndex] = questionData;
+    } else {
+      pageData.questions.push(questionData);
+    }
+    
+    localStorage.setItem(`page_${this.pageId}`, JSON.stringify(pageData));
+
+    return true;
+  } catch (error) {
+    console.error('Error saving option data:', error);
+    return false;
+  }
+}
