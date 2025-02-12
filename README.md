@@ -4,13 +4,17 @@ A form building tool built on the GOV.UK Prototype Kit that allows you to create
 
 ## Features
 
+### Core Features
 - Create multi-page forms with an intuitive interface
 - Support for multiple field types (text, textarea, radio, checkbox, select, date, etc.)
-- Live preview of fields as you build them
 - Form preview with Previous/Continue navigation
 - Custom Defra-styled header
-- Data persistence using localStorage
-- Full GDS component styling
+
+### Technical Features
+- Modular JavaScript architecture with reusable components
+- Live preview using PreviewManager module with official GDS markup
+- Data persistence using StorageManager module and localStorage
+- Full GDS component styling and accessibility features
 
 ## Quick Start
 
@@ -30,27 +34,43 @@ A form building tool built on the GOV.UK Prototype Kit that allows you to create
 1. Start at the Pages List (`/pages`)
 2. Click "Add new page" to create your first page
 3. Add fields to your page using the field type options
-4. Configure each field's settings and preview how it will look
-5. Return to the Pages List to manage your pages
-6. Use the "Preview form" button to see your complete form
+4. Configure each field's settings in the question editor
+5. See live previews rendered with GDS markup as you make changes
+6. Return to the Pages List to manage your pages
+7. Use the "Preview form" button to see your complete form
+
+## Architecture
+
+The tool uses a modular JavaScript architecture:
+
+### Core Modules
+- **PreviewManager**: Handles real-time field previews using official GDS markup
+- **StorageManager**: Manages data persistence and state management
+
+### Supporting Scripts
+- **options.js**: Manages field configuration and options
+- **pages.js**: Handles page creation and management
+- **form-preview.js**: Controls the complete form preview functionality
 
 ## Field Types Available
 
+All field types are rendered using official GOV.UK Design System markup and classes.
+
 ### Text Inputs
-- Text input - Single line text
-- Text area - Multi-line text
-- Email address - With email format validation
-- Telephone number - For phone numbers
-- Number - For numeric input
+- Text input (`govuk-input`) - Single line text
+- Text area (`govuk-textarea`) - Multi-line text
+- Email address (`govuk-input`) - With email format validation
+- Telephone number (`govuk-input`) - For phone numbers
+- Number (`govuk-input`) - For numeric input
 
 ### Selection Inputs
-- Radio buttons - Single selection from multiple options
-- Checkboxes - Multiple selections allowed
-- Select dropdown - Single selection from a dropdown list
+- Radio buttons (`govuk-radios`) - Single selection from multiple options
+- Checkboxes (`govuk-checkboxes`) - Multiple selections allowed
+- Select dropdown (`govuk-select`) - Single selection from a dropdown list
 
 ### Special Inputs
-- Date input - For capturing dates
-- File upload - For file attachments
+- Date input (`govuk-date-input`) - For capturing dates with day/month/year fields
+- File upload (`govuk-file-upload`) - For file attachments
 
 ## Project Structure
 
@@ -58,25 +78,30 @@ A form building tool built on the GOV.UK Prototype Kit that allows you to create
 app/
 ├── assets/
 │   ├── javascripts/
-│   │   ├── application.js
-│   │   ├── form-preview.js
-│   │   ├── options.js
-│   │   └── pages.js
+│   │   ├── modules/                   # Core reusable modules
+│   │   │   ├── preview-manager.js     # Field preview with GDS markup
+│   │   │   └── storage-manager.js     # Data persistence
+│   │   ├── application.js             # Main application entry
+│   │   ├── form-preview.js            # Form preview functionality
+│   │   ├── options.js                 # Field options management
+│   │   └── pages.js                   # Page management
 │   └── sass/
-│       ├── application.scss
-│       └── legacy.scss
+│       ├── application.scss           # Main styles
+│       └── legacy.scss                # Legacy support
 ├── views/
-│   ├── includes/
-│   │   ├── _header.html
-│   │   └── _option-list.html
+│   ├── includes/                      # Reusable view components
+│   │   ├── _header.html               # Custom Defra header
+│   │   ├── _footer.html               # Custom footer with docs
+│   │   └── _option-list.html          # Field options template
 │   ├── layouts/
-│   │   └── main.html
-│   ├── pages.html
-│   ├── page-create.html
-│   ├── page-editor.html
-│   ├── question-editor.html
-│   └── form-preview.html
-└── routes.js
+│   │   └── main.html                  # Base layout template
+│   ├── pages.html                     # Page list/summary
+│   ├── page-create.html               # New page creation
+│   ├── page-editor.html               # Page content editor
+│   ├── question-editor.html           # Field configuration
+│   ├── docs.html                      # Technical documentation
+│   └── form-preview.html              # Complete form preview
+└── routes.js                          # URL routing
 ```
 
 ## Key Routes

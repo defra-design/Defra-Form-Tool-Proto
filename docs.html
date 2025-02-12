@@ -1,0 +1,121 @@
+{% extends "layouts/main.html" %}
+
+{% block pageTitle %}
+  Technical Documentation - Defra Form Builder Tool
+{% endblock %}
+
+{% block content %}
+<div class="govuk-width-container">
+  <main class="govuk-main-wrapper">
+    <div class="govuk-grid-row">
+      <div class="govuk-grid-column-two-thirds">
+        <h1 class="govuk-heading-xl">Technical Documentation</h1>
+
+        <h2 class="govuk-heading-l">JavaScript Architecture</h2>
+        
+        <h3 class="govuk-heading-m">Modular Design</h3>
+        <p class="govuk-body">The tool uses a modular JavaScript architecture to promote code reusability and maintainability:</p>
+        <ul class="govuk-list govuk-list--bullet">
+          <li>Core functionality is split into independent modules</li>
+          <li>Each module has a single responsibility</li>
+          <li>Modules are exposed through the global Prototype namespace</li>
+          <li>Supporting scripts handle specific page functionality</li>
+        </ul>
+
+        <h3 class="govuk-heading-m">Preview Manager</h3>
+        <p class="govuk-body">The PreviewManager class handles the rendering of form field previews using official GOV.UK Design System markup and classes.</p>
+        <ul class="govuk-list govuk-list--bullet">
+          <li>Located in <code>app/assets/javascripts/modules/preview-manager.js</code></li>
+          <li>Instantiated with a container element</li>
+          <li>Updates preview when field settings change</li>
+          <li>Supports all GDS field types with proper markup</li>
+        </ul>
+
+        <h4 class="govuk-heading-s">Usage Example:</h4>
+        <pre class="govuk-body"><code>
+// Initialize the preview manager
+const container = document.querySelector('#preview');
+const manager = new Prototype.PreviewManager(container);
+
+// Update preview when field settings change
+document.addEventListener('change', (event) => {
+  if (event.target.matches('[data-field-setting]')) {
+    manager.update({
+      title: titleInput.value,
+      hint: hintInput.value,
+      fieldType: typeSelect.value,
+      options: getOptions()  // For radio/checkbox/select
+    });
+  }
+});
+        </code></pre>
+
+        <h4 class="govuk-heading-s">Integration with Options Manager</h4>
+        <p class="govuk-body">The PreviewManager works in conjunction with the options.js script:</p>
+        <ul class="govuk-list govuk-list--bullet">
+          <li>options.js handles field configuration UI and data collection</li>
+          <li>PreviewManager receives the field data and renders the preview</li>
+          <li>Changes to field settings trigger immediate preview updates</li>
+        </ul>
+
+        <h3 class="govuk-heading-m">Field Types</h3>
+        <p class="govuk-body">Each field type uses specific GDS classes and markup structure:</p>
+
+        <h4 class="govuk-heading-s">Text Inputs</h4>
+        <ul class="govuk-list govuk-list--bullet">
+          <li>Text, Email, Tel, Number: <code>govuk-input</code></li>
+          <li>Textarea: <code>govuk-textarea</code></li>
+        </ul>
+
+        <h4 class="govuk-heading-s">Selection Inputs</h4>
+        <ul class="govuk-list govuk-list--bullet">
+          <li>Radio buttons: <code>govuk-radios</code> with <code>govuk-radios__item</code></li>
+          <li>Checkboxes: <code>govuk-checkboxes</code> with <code>govuk-checkboxes__item</code></li>
+          <li>Select: <code>govuk-select</code></li>
+        </ul>
+
+        <h4 class="govuk-heading-s">Special Inputs</h4>
+        <ul class="govuk-list govuk-list--bullet">
+          <li>Date: <code>govuk-date-input</code> with separate day/month/year fields</li>
+          <li>File: <code>govuk-file-upload</code></li>
+        </ul>
+
+        <h3 class="govuk-heading-m">Storage Manager</h3>
+        <p class="govuk-body">The StorageManager class handles data persistence using localStorage:</p>
+        <ul class="govuk-list govuk-list--bullet">
+          <li>Located in <code>app/assets/javascripts/modules/storage-manager.js</code></li>
+          <li>Saves form data and field settings</li>
+          <li>Handles page and field data retrieval</li>
+        </ul>
+
+        <h2 class="govuk-heading-l">Module Communication</h2>
+        <p class="govuk-body">Modules interact through a simple event-based system:</p>
+        <ul class="govuk-list govuk-list--bullet">
+          <li>UI changes trigger standard DOM events</li>
+          <li>Modules listen for relevant events and update accordingly</li>
+          <li>StorageManager persists changes to localStorage</li>
+          <li>PreviewManager updates the visual preview</li>
+        </ul>
+
+        <h2 class="govuk-heading-l">Adding New Field Types</h2>
+        <p class="govuk-body">To add a new field type:</p>
+        <ol class="govuk-list govuk-list--number">
+          <li>Add the field type to the options in <code>question-editor.html</code></li>
+          <li>Add the GDS markup to PreviewManager's update method</li>
+          <li>Add any necessary styling to <code>application.scss</code></li>
+          <li>Update the field type documentation</li>
+        </ol>
+
+        <h2 class="govuk-heading-l">Browser Support</h2>
+        <p class="govuk-body">The tool uses modern JavaScript features including:</p>
+        <ul class="govuk-list govuk-list--bullet">
+          <li>Template literals for HTML generation</li>
+          <li>Array methods (map, join)</li>
+          <li>localStorage API</li>
+          <li>Classes and modules</li>
+        </ul>
+      </div>
+    </div>
+  </main>
+</div>
+{% endblock %}

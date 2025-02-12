@@ -17,6 +17,10 @@ https://prototype-kit.service.gov.uk/docs/how-to-use-layouts
   {% endif %}
 {% endblock %}
 
+{% block footer %}
+  {% include "includes/_footer.html" %}
+{% endblock %}
+
 {% block bodyEnd %}
   {{ super() }}
   <script src="/public/javascripts/application.js"></script>
