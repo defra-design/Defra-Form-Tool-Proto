@@ -122,6 +122,41 @@ This tool uses modern JavaScript features and the localStorage API. It should wo
 - Safari (latest)
 - Edge (latest)
 
+## Adding New Field Types
+
+To add a new field type to the form builder, you'll need to modify these files:
+
+```
+app/
+├── views/
+│   └── question-editor.html     # Add field type and settings UI
+└── assets/
+    └── javascripts/
+        ├── modules/
+        │   └── preview-manager.js # Add GDS markup generation
+        └── options.js            # Add field options handling
+```
+
+### 1. Add Field Type UI
+In `question-editor.html`:
+- Add the field type to the type selector
+- Create field-specific settings section
+- Use GDS classes for all form elements
+
+### 2. Add Preview Support
+In `preview-manager.js`:
+- Add case to the switch statement
+- Use official GDS markup and classes
+- Handle any field-specific attributes
+
+### 3. Add Options Handling
+In `options.js`:
+- Initialize field-specific settings
+- Add data saving/loading logic
+- Handle any special validation
+
+See the [technical documentation](/docs) for detailed examples and best practices.
+
 ## Contributing
 
 1. Fork the repository

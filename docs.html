@@ -98,8 +98,117 @@ document.addEventListener('change', (event) => {
         </ul>
 
         <h2 class="govuk-heading-l">Adding New Field Types</h2>
-        <p class="govuk-body">To add a new field type:</p>
-        <ol class="govuk-list govuk-list--number">
+        <p class="govuk-body">Follow these steps to add a new field type to the form builder:</p>
+
+        <h3 class="govuk-heading-m">1. Update Question Editor</h3>
+        <p class="govuk-body">In <code>app/views/question-editor.html</code>:</p>
+        <pre><code class="html">
+<!-- Add to the field type selector -->
+<select class="govuk-select" id="field-type">
+  ...
+  <option value="your-field-type">Your Field Type</option>
+</select>
+
+<!-- Add field-specific settings -->
+<div class="field-settings" data-field-type="your-field-type">
+  <div class="govuk-form-group">
+    <label class="govuk-label" for="your-setting">
+      Your Setting
+    </label>
+    <input class="govuk-input" id="your-setting" name="your-setting" type="text">
+  </div>
+</div>
+        </code></pre>
+
+        <h3 class="govuk-heading-m">2. Add Preview Support</h3>
+        <p class="govuk-body">In <code>app/assets/javascripts/modules/preview-manager.js</code>, add the field type to the switch statement:</p>
+        <pre><code class="javascript">
+case 'your-field-type':
+  inputHtml = `
+    <div class="govuk-form-group">
+      <input class="govuk-input" 
+             type="your-type" 
+             id="question" 
+             name="question"
+             ${yourSetting ? `data-your-setting="${yourSetting}"` : ''}>
+    </div>`;
+  break;
+        </code></pre>
+
+        <h3 class="govuk-heading-m">3. Add Field Options Support</h3>
+        <p class="govuk-body">In <code>app/assets/javascripts/options.js</code>, handle any field-specific options:</p>
+        <pre><code class="javascript">
+// Add field type to the initialization
+document.addEventListener('DOMContentLoaded', () => {
+  initializeFieldType('your-field-type', {
+    // Field-specific settings
+    yourSetting: document.querySelector('#your-setting')
+  });
+});
+
+// Add any special handling
+function handleYourFieldType(data) {
+  // Process field-specific data
+  return {
+    ...data,
+    yourSetting: yourSettingInput.value
+  };
+}
+        </code></pre>
+
+        <h3 class="govuk-heading-m">4. Test the Integration</h3>
+        <p class="govuk-body">Test the following scenarios:</p>
+        <ul class="govuk-list govuk-list--bullet">
+          <li>Field appears in type selector</li>
+          <li>Field-specific settings show/hide correctly</li>
+          <li>Preview updates with proper GDS styling</li>
+          <li>Settings are saved and loaded correctly</li>
+          <li>Field works in the complete form preview</li>
+        </ul>
+
+        <h3 class="govuk-heading-m">Example: Adding a Phone Number Field</h3>
+        <p class="govuk-body">Here's a complete example of adding a phone number field:</p>
+
+        <h4 class="govuk-heading-s">1. Question Editor (question-editor.html)</h4>
+        <pre><code class="html">
+<option value="tel">Phone number</option>
+
+<div class="field-settings" data-field-type="tel">
+  <div class="govuk-form-group">
+    <label class="govuk-label" for="pattern">
+      Number format pattern
+    </label>
+    <input class="govuk-input" id="pattern" name="pattern" type="text">
+  </div>
+</div>
+        </code></pre>
+
+        <h4 class="govuk-heading-s">2. Preview Manager (preview-manager.js)</h4>
+        <pre><code class="javascript">
+case 'tel':
+  inputHtml = `
+    <input class="govuk-input" 
+           id="question" 
+           name="question" 
+           type="tel"
+           ${pattern ? `pattern="${pattern}"` : ''}
+           autocomplete="tel">`;
+  break;
+        </code></pre>
+
+        <h4 class="govuk-heading-s">3. Options (options.js)</h4>
+        <pre><code class="javascript">
+initializeFieldType('tel', {
+  pattern: document.querySelector('#pattern')
+});
+
+function handleTelField(data) {
+  return {
+    ...data,
+    pattern: patternInput.value
+  };
+}
+        </code></pre>
           <li>Add the field type to the options in <code>question-editor.html</code></li>
           <li>Add the GDS markup to PreviewManager's update method</li>
           <li>Add any necessary styling to <code>application.scss</code></li>
