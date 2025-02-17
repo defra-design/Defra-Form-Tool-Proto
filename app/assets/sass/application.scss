@@ -47,5 +47,27 @@ code {
   color: #ffffff !important;
 }
 
+// Preview pane styles
+.app-preview-border {
+  border: 2px solid #b1b4b6;
+  min-height: 300px;
+  margin-top: 15px;
+  padding: 30px;
+  background: #ffffff;
+}
+
+.app-preview-pane {
+  margin-bottom: 30px;
+  
+  // Ensure preview content doesn't overflow
+  max-width: 100%;
+  overflow-x: auto;
+  
+  // Add some spacing between fields
+  .govuk-form-group {
+    margin-bottom: 30px;
+  }
+}
+
 // bring in legacy styles from dan's proto (should probably clean up as its rather large)
 @import "legacy";

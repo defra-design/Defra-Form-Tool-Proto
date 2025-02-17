@@ -29,33 +29,73 @@
   }
 
   PageEditor.prototype.cleanupInvalidEntries = function() {
+    console.log('Starting localStorage cleanup...')
     const keys = Object.keys(localStorage)
+    const validPageIds = new Set()
+
+    // First get all valid page IDs
+    try {
+      const pagesData = JSON.parse(localStorage.getItem('form_pages') || '[]')
+      pagesData.forEach(page => {
+        if (page.id) validPageIds.add(page.id)
+      })
+      console.log('Valid page IDs:', Array.from(validPageIds))
+    } catch (error) {
+      console.error('Error parsing form_pages:', error)
+    }
+
+    // Then clean up question entries
     keys.forEach(key => {
       if (key.startsWith('form_') && key !== 'form_pages') {
         try {
           const data = JSON.parse(localStorage.getItem(key))
-          // Remove entries that are:
-          // 1. Invalid JSON or missing required fields
-          // 2. Have no title and no options
-          // 3. Have 'Untitled' as title and no options
-          if (!data || !data.fieldType || !data.pageId || 
-              (!data.title && (!data.options || data.options.length === 0)) ||
-              (data.title === 'Untitled' && (!data.options || data.options.length === 0))) {
-            console.log('Removing invalid entry:', key)
+          let shouldRemove = false
+          let reason = ''
+
+          // Check for basic validity
+          if (!data) {
+            shouldRemove = true
+            reason = 'Invalid JSON data'
+          }
+          // Check for required fields
+          else if (!data.fieldType) {
+            shouldRemove = true
+            reason = 'Missing field type'
+          }
+          else if (!data.pageId || !validPageIds.has(data.pageId)) {
+            shouldRemove = true
+            reason = 'Invalid or missing page ID'
+          }
+          // Check title validity
+          else if (!data.title || data.title.trim() === '' || data.title === 'Untitled') {
+            // For fields that require options, only remove if they also have no options
+            if (['radio', 'checkbox', 'select'].includes(data.fieldType)) {
+              if (!data.options || data.options.length === 0) {
+                shouldRemove = true
+                reason = 'Empty title and no options for choice field'
+              }
+            } else {
+              shouldRemove = true
+              reason = 'Empty or untitled question'
+            }
+          }
+
+          if (shouldRemove) {
+            console.log(`Removing invalid entry ${key}:`, reason, data)
             localStorage.removeItem(key)
           }
         } catch (error) {
-          console.error('Error parsing localStorage entry:', error)
+          console.error('Error processing localStorage entry:', key, error)
           localStorage.removeItem(key)
         }
       }
     })
+    console.log('localStorage cleanup completed')
   }
 
   PageEditor.prototype.moveQuestion = function(questionId, direction) {
     // Get all questions for this page
     const questions = []
-    const keys = []
     
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i)
@@ -64,7 +104,6 @@
           const questionData = JSON.parse(localStorage.getItem(key))
           if (questionData.pageId === this.pageId) {
             questions.push({ ...questionData, key })
-            keys.push(key)
           }
         } catch (error) {
           console.error('Error parsing question data:', error)
@@ -87,21 +126,24 @@
     const newIndex = currentIndex + direction
     if (newIndex < 0 || newIndex >= questions.length) return
     
-    // Swap positions
-    const temp = questions[currentIndex].position
-    questions[currentIndex].position = questions[newIndex].position
-    questions[newIndex].position = temp
+    // Update positions for all questions
+    questions.forEach((q, i) => {
+      q.position = i
+    })
     
-    // If either position is undefined, assign new positions
-    if (typeof questions[currentIndex].position !== 'number' || 
-        typeof questions[newIndex].position !== 'number') {
-      questions[currentIndex].position = newIndex
-      questions[newIndex].position = currentIndex
-    }
+    // Swap the questions
+    const temp = questions[currentIndex]
+    questions[currentIndex] = questions[newIndex]
+    questions[newIndex] = temp
     
-    // Save both questions
-    localStorage.setItem(questions[currentIndex].key, JSON.stringify(questions[currentIndex]))
-    localStorage.setItem(questions[newIndex].key, JSON.stringify(questions[newIndex]))
+    // Update positions after swap
+    questions[currentIndex].position = currentIndex
+    questions[newIndex].position = newIndex
+    
+    // Save all questions with their new positions
+    questions.forEach(question => {
+      localStorage.setItem(question.key, JSON.stringify(question))
+    })
     
     // Refresh the display
     this.loadPageData()
@@ -150,7 +192,7 @@
   }
 
   PageEditor.prototype.loadQuestions = function(pageData) {
-    const questions = new Map() // Use a Map to deduplicate by ID
+    const questions = [] // Use an array instead of Map
     
     // First, load questions from page data
     if (pageData && Array.isArray(pageData.questions)) {
@@ -159,15 +201,11 @@
         if (question && question.id) {
           // Clean the ID and ensure it has form_ prefix
           const cleanId = 'form_' + question.id.replace(/^(form_)+/, '');
-          // Ensure question has all required fields
-          if (!question.fieldType) {
-            console.warn('Question missing field type:', question);
-          }
           // Initialize position if not set
           if (typeof question.position !== 'number') {
-            question.position = questions.size;
+            question.position = questions.length;
           }
-          questions.set(cleanId, {...question, id: cleanId})
+          questions.push({...question, id: cleanId, key: cleanId})
           console.log('Added question from page data:', question)
         }
       })
@@ -177,89 +215,82 @@
     const keys = Object.keys(localStorage)
     console.log('Scanning localStorage keys:', keys)
 
+    // Sort questions by position
+    questions.sort((a, b) => {
+      const posA = typeof a.position === 'number' ? a.position : Infinity
+      const posB = typeof b.position === 'number' ? b.position : Infinity
+      return posA - posB
+    })
+
     keys.forEach(key => {
-      if (key.startsWith('form_')) {
+      if (key.startsWith('form_') && key !== 'form_pages') {
         try {
           const question = JSON.parse(localStorage.getItem(key))
           console.log('Found question in localStorage:', { key, question })
           
-          // Skip questions that are empty or missing required fields
-          if (!question || !question.fieldType || !question.pageId) {
-            console.log('Skipping invalid question:', question)
-            return
-          }
-
-          // Skip questions with empty title and no options
-          if (!question.title && (!question.options || question.options.length === 0)) {
-            console.log('Skipping empty question:', question)
-            return
-          }
-          
-          // Normalize the pageId to handle both prefixed and unprefixed versions
+          // Skip questions that don't belong to this page
           const questionPageId = question.pageId?.startsWith('page_') ? question.pageId : 'page_' + question.pageId
-          if (questionPageId === this.pageId) {
-            // Clean the ID and ensure it has form_ prefix
-            const cleanId = 'form_' + key.replace(/^(form_)+/, '')
-            
-            // Update or add the question
-            const existingQuestion = questions.get(cleanId)
-            if (existingQuestion) {
-              // Merge with existing data, preferring localStorage values
-              questions.set(cleanId, {
-                ...existingQuestion,
-                ...question,
-                id: cleanId
-              })
-              console.log('Updated existing question:', questions.get(cleanId))
-            } else {
-              questions.set(cleanId, {...question, id: cleanId})
-              console.log('Added new question:', questions.get(cleanId))
-            }
+          if (questionPageId !== this.pageId) {
+            return
           }
-        } catch (error) {
-          console.error('Error parsing question data:', error)
-        }
-      }
-    })
 
-    // Convert to array and sort by position
-    const sortedQuestions = Array.from(questions.values())
-      .sort((a, b) => {
-        // First by position
-        const posA = typeof a.position === 'number' ? a.position : Infinity;
-        const posB = typeof b.position === 'number' ? b.position : Infinity;
-        if (posA !== posB) return posA - posB;
-        
-        // Then by creation time if positions are equal
-        const timeA = parseInt((a.id || '').split('_')[2]) || 0;
-        const timeB = parseInt((b.id || '').split('_')[2]) || 0;
-        return timeB - timeA;
+          // Update existing question or add new one
+          const existingIndex = questions.findIndex(q => q.id === key)
+          if (existingIndex >= 0) {
+            questions[existingIndex] = { ...questions[existingIndex], ...question, id: key, key: key }
+          } else {
+            questions.push({ ...question, id: key, key: key, position: questions.length })
+          }
+          } catch (error) {
+            console.error('Error parsing question data:', error)
+          }
+        }
       })
 
-    console.log('Final sorted questions:', sortedQuestions)
-    return sortedQuestions
+      // Sort questions by position
+      questions.sort((a, b) => {
+        const posA = typeof a.position === 'number' ? a.position : Infinity
+        const posB = typeof b.position === 'number' ? b.position : Infinity
+        if (posA !== posB) return posA - posB
+        
+        // Then by creation time if positions are equal
+        const timeA = parseInt((a.id || '').split('_')[2]) || 0
+        const timeB = parseInt((b.id || '').split('_')[2]) || 0
+        return timeB - timeA
+      })
+
+      console.log('Final sorted questions:', questions)
+      return questions
   }
 
   PageEditor.prototype.displayFields = function(questions) {
     console.log('Displaying fields:', questions)
     const tbody = document.querySelector('[data-questions-table] tbody')
-    if (!tbody) {
-      console.error('No tbody found')
+    const previewPane = document.getElementById('page-preview')
+    if (!tbody || !previewPane) {
+      console.error('Required elements not found')
       return
     }
 
-    // Convert Map to array if needed and filter out invalid questions
-    const questionArray = (questions instanceof Map ? Array.from(questions.values()) : questions)
-      .filter(q => {
-        // Only keep questions that have a non-empty title that's not 'Untitled'
-        // We no longer show untitled questions even if they have options
-        return q && q.title && q.title.trim() && q.title !== 'Untitled';
-      })
+    // Ensure questions is an array and has field types
+    questions = (Array.isArray(questions) ? questions : []).filter(q => q && q.fieldType)
+    console.log('Filtered questions:', questions)
+
+    // Clear both the table and preview
+    tbody.innerHTML = ''
+    previewPane.innerHTML = ''
+
+    console.log('Raw questions:', questions)
+    // Ensure we have an array and filter out invalid questions
+    const questionArray = (Array.isArray(questions) ? questions : [])
+      .filter(q => q && q.fieldType)
       .sort((a, b) => {
-        const posA = typeof a.position === 'number' ? a.position : Infinity;
-        const posB = typeof b.position === 'number' ? b.position : Infinity;
-        return posA - posB;
-      });
+        const posA = typeof a.position === 'number' ? a.position : Infinity
+        const posB = typeof b.position === 'number' ? b.position : Infinity
+        return posA - posB
+      })
+
+    console.log('Final filtered and sorted questions:', questionArray)
 
     if (!questionArray || questionArray.length === 0) {
       console.log('No questions to display')
@@ -270,10 +301,40 @@
           </td>
         </tr>
       `
+      previewPane.innerHTML = `
+        <div class="govuk-body">
+          <p>No fields added yet. Your form preview will appear here.</p>
+        </div>
+      `
       return
     }
 
-    tbody.innerHTML = ''
+    // Create preview container with heading
+    const previewContainer = document.createElement('div')
+    previewContainer.className = 'govuk-!-margin-bottom-6'
+    
+    // Add page title if available
+    const pageData = JSON.parse(localStorage.getItem(this.pageId) || '{}')
+    if (pageData.title) {
+      const heading = document.createElement('h1')
+      heading.className = 'govuk-heading-l'
+      heading.textContent = pageData.title
+      previewContainer.appendChild(heading)
+    }
+
+    // Add all questions to the preview container first
+    questionArray.forEach(question => {
+      const preview = this.generatePreview(question)
+      if (preview) {
+        previewContainer.appendChild(preview)
+      }
+    })
+
+    // Add the preview container to the preview pane
+    previewPane.innerHTML = ''
+    previewPane.appendChild(previewContainer)
+
+    // Now add the table rows
     questionArray.forEach(question => {
       console.log('Generating row for question:', question);
       
@@ -385,6 +446,35 @@
     })
   }
 
+  PageEditor.prototype.generatePreview = function(question) {
+    console.log('Generating preview for question:', question)
+    if (!question || !question.fieldType || !QuestionTemplates[question.fieldType]) {
+      console.log('Invalid question data or unsupported field type:', question)
+      return null
+    }
+
+    // Get the latest data from localStorage
+    try {
+      const latestData = JSON.parse(localStorage.getItem(question.id))
+      if (latestData) {
+        question = { ...question, ...latestData }
+      }
+    } catch (error) {
+      console.error('Error getting latest question data:', error)
+    }
+
+    const title = question.title || 'Question text'
+    const hint = question.hint || ''
+
+    // Create container and set HTML from template
+    const fieldContainer = document.createElement('div')
+    fieldContainer.innerHTML = QuestionTemplates[question.fieldType](question, title, hint)
+
+    // Return the first child (the actual field container)
+    return fieldContainer.firstElementChild
+
+  }
+
   PageEditor.prototype.setupEventListeners = function() {
     // Set up table event handlers
     const tbody = document.querySelector('[data-questions-table] tbody')
@@ -480,8 +570,25 @@
     }
   }
 
+  // Debug function to check localStorage
+  function debugLocalStorage() {
+    console.log('Checking localStorage contents:')
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i)
+      if (key.startsWith('form_')) {
+        try {
+          const value = JSON.parse(localStorage.getItem(key))
+          console.log('Key:', key, 'Value:', value)
+        } catch (error) {
+          console.log('Key:', key, 'Error parsing:', error)
+        }
+      }
+    }
+  }
+
   // Initialize when DOM is ready
   document.addEventListener('DOMContentLoaded', () => {
+    debugLocalStorage()
     const pageEditor = document.querySelector('[data-module="page-editor"]')
     if (pageEditor) {
       const editor = new PageEditor(pageEditor)

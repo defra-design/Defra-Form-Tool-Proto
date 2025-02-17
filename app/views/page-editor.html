@@ -5,7 +5,8 @@
 
 {% block content %}
 <div class="govuk-grid-row">
-  <div class="govuk-grid-column-full">
+  <div class="govuk-grid-column-one-half">
+    <div class="govuk-!-padding-right-3">
     <form class="form" data-module="page-editor" data-page-form>
       <input type="hidden" name="pageId" value="{{ params.pageId }}">
 
@@ -52,6 +53,17 @@
       </div>
     </form>
   </div>
+  </div>
+  <div class="govuk-grid-column-one-half">
+    <div class="govuk-!-padding-left-3">
+      <h2 class="govuk-heading-m">Page preview</h2>
+      <div class="app-preview-border">
+        <div id="page-preview" class="app-preview-pane">
+          <!-- Preview content will be inserted here -->
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 {% endblock %}
 
@@ -64,6 +76,7 @@
 <script src="/public/javascripts/modules/option-editor.js"></script>
 
 <!-- Load main scripts -->
+<script src="/public/javascripts/question-templates.js"></script>
 <script src="/public/javascripts/options.js"></script>
 <script src="/public/javascripts/page-editor.js"></script>
 {% endblock %}
