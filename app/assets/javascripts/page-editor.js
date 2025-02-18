@@ -94,59 +94,55 @@
   }
 
   PageEditor.prototype.moveQuestion = function(questionId, direction) {
-    // Get all questions for this page
-    const questions = []
-    
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i)
-      if (key.startsWith('form_') && key !== 'form_pages') {
-        try {
-          const questionData = JSON.parse(localStorage.getItem(key))
-          if (questionData.pageId === this.pageId) {
-            questions.push({ ...questionData, key })
-          }
-        } catch (error) {
-          console.error('Error parsing question data:', error)
-        }
-      }
+    console.log('Moving question:', { questionId, direction });
+
+    // Get the page data
+    const pageData = JSON.parse(localStorage.getItem(this.pageId) || '{}');
+    if (!pageData.questions) {
+      console.error('No questions found in page data');
+      return;
     }
-    
-    // Sort questions by position
-    questions.sort((a, b) => {
-      const posA = typeof a.position === 'number' ? a.position : Infinity
-      const posB = typeof b.position === 'number' ? b.position : Infinity
-      return posA - posB
-    })
-    
+
     // Find current question index
-    const currentIndex = questions.findIndex(q => q.key === questionId)
-    if (currentIndex === -1) return
-    
+    const currentIndex = pageData.questions.findIndex(q => {
+      const qId = 'form_' + q.id.replace(/^(form_)+/, '');
+      return qId === questionId;
+    });
+
+    if (currentIndex === -1) {
+      console.error('Question not found:', questionId);
+      return;
+    }
+
     // Calculate new index
-    const newIndex = currentIndex + direction
-    if (newIndex < 0 || newIndex >= questions.length) return
-    
-    // Update positions for all questions
-    questions.forEach((q, i) => {
-      q.position = i
-    })
-    
+    const newIndex = currentIndex + direction;
+    if (newIndex < 0 || newIndex >= pageData.questions.length) {
+      console.log('Cannot move question - at boundary');
+      return;
+    }
+
     // Swap the questions
-    const temp = questions[currentIndex]
-    questions[currentIndex] = questions[newIndex]
-    questions[newIndex] = temp
-    
-    // Update positions after swap
-    questions[currentIndex].position = currentIndex
-    questions[newIndex].position = newIndex
-    
-    // Save all questions with their new positions
-    questions.forEach(question => {
-      localStorage.setItem(question.key, JSON.stringify(question))
-    })
-    
+    const questions = pageData.questions;
+    const temp = questions[currentIndex];
+    questions[currentIndex] = questions[newIndex];
+    questions[newIndex] = temp;
+
+    // Update positions
+    questions.forEach((question, index) => {
+      question.position = index;
+      // Update the question data in localStorage
+      const qId = 'form_' + question.id.replace(/^(form_)+/, '');
+      const questionData = JSON.parse(localStorage.getItem(qId) || '{}');
+      questionData.position = index;
+      localStorage.setItem(qId, JSON.stringify(questionData));
+    });
+
+    // Save the updated page data
+    pageData.questions = questions;
+    localStorage.setItem(this.pageId, JSON.stringify(pageData));
+
     // Refresh the display
-    this.loadPageData()
+    this.loadPageData();
   }
 
   PageEditor.prototype.init = function() {
@@ -376,6 +372,25 @@
         </td>
       `
       tbody.appendChild(row)
+
+      // Add move up/down handlers
+      const moveUpButton = row.querySelector('[data-move-up]');
+      const moveDownButton = row.querySelector('[data-move-down]');
+      const pageEditor = this;
+
+      if (moveUpButton) {
+        moveUpButton.addEventListener('click', (e) => {
+          e.preventDefault();
+          pageEditor.moveQuestion(cleanId, -1);
+        });
+      }
+
+      if (moveDownButton) {
+        moveDownButton.addEventListener('click', (e) => {
+          e.preventDefault();
+          pageEditor.moveQuestion(cleanId, 1);
+        });
+      }
 
       // Add delete handler
       const deleteLink = row.querySelector('[data-delete-field]')
