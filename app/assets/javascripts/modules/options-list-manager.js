@@ -266,4 +266,6 @@ class OptionsListManager {
 
 // Export for use in other modules
 window.Prototype = window.Prototype || {};
-window.Prototype.OptionsListManager = OptionsListManager;
+if (!window.Prototype.OptionsListManager) {
+  window.Prototype.OptionsListManager = OptionsListManager;
+}

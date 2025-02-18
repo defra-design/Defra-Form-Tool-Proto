@@ -67,16 +67,18 @@
 </div>
 {% endblock %}
 
-{% block pageScripts %}
+{% block moduleScripts %}
 <!-- Load modules first -->
 <script src="/public/javascripts/modules/storage-manager.js"></script>
 <script src="/public/javascripts/modules/ui-manager.js"></script>
 <script src="/public/javascripts/modules/preview-manager.js"></script>
 <script src="/public/javascripts/modules/options-list-manager.js"></script>
 <script src="/public/javascripts/modules/option-editor.js"></script>
-
-<!-- Load main scripts -->
 <script src="/public/javascripts/question-templates.js"></script>
+{% endblock %}
+
+{% block pageScripts %}
+<!-- Load page-specific scripts -->
 <script src="/public/javascripts/options.js"></script>
 <script src="/public/javascripts/page-editor.js"></script>
 {% endblock %}

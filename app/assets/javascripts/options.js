@@ -59,6 +59,12 @@
 
   // Initialize default lists if none exist
   function initializeDefaultLists() {
+    // Only initialize if StorageManager exists
+    if (!window.Prototype || !window.Prototype.StorageManager) {
+      console.log('StorageManager not available, skipping default lists initialization');
+      return;
+    }
+
     const storageManager = new window.Prototype.StorageManager();
     const lists = storageManager.getLists();
     
@@ -90,13 +96,19 @@
     }
   }
 
-  // Initialize when DOM is ready
+  // Initialize when DOM is ready and only if we have options containers
+  function shouldInitialize() {
+    return document.querySelector('[data-options-list], [data-option-editor]') !== null;
+  }
+
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
-      initializeDefaultLists();
-      initializeOptions();
+      if (shouldInitialize()) {
+        initializeDefaultLists();
+        initializeOptions();
+      }
     });
-  } else {
+  } else if (shouldInitialize()) {
     initializeDefaultLists();
     initializeOptions();
   }

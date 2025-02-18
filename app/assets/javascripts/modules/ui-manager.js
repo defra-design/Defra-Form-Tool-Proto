@@ -107,4 +107,6 @@ class UIManager {
 
 // Export for use in other modules
 window.Prototype = window.Prototype || {};
-window.Prototype.UIManager = UIManager;
+if (!window.Prototype.UIManager) {
+  window.Prototype.UIManager = UIManager;
+}

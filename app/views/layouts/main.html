@@ -24,7 +24,6 @@ https://prototype-kit.service.gov.uk/docs/how-to-use-layouts
 {% block bodyEnd %}
   {{ super() }}
   <script src="/public/javascripts/application.js"></script>
-  <script src="/public/javascripts/pages.js"></script>
-  <script src="/public/javascripts/options.js"></script>
-  <script src="/public/javascripts/form-preview.js"></script>
+  {% block moduleScripts %}{% endblock %}
+  {% block pageScripts %}{% endblock %}
 {% endblock %}

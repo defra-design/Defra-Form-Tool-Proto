@@ -121,4 +121,6 @@ class StorageManager {
 
 // Export for use in other modules
 window.Prototype = window.Prototype || {};
-window.Prototype.StorageManager = StorageManager;
+if (!window.Prototype.StorageManager) {
+  window.Prototype.StorageManager = StorageManager;
+}

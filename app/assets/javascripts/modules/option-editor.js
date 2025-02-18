@@ -127,4 +127,6 @@ class OptionEditor {
 
 // Export for use in other modules
 window.Prototype = window.Prototype || {};
-window.Prototype.OptionEditor = OptionEditor;
+if (!window.Prototype.OptionEditor) {
+  window.Prototype.OptionEditor = OptionEditor;
+}

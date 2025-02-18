@@ -105,8 +105,10 @@
 
     // Find current question index
     const currentIndex = pageData.questions.findIndex(q => {
+      if (!q || !q.id) return false;
       const qId = 'form_' + q.id.replace(/^(form_)+/, '');
-      return qId === questionId;
+      const targetId = questionId.replace(/^(form_)+/, '');
+      return qId === 'form_' + targetId;
     });
 
     if (currentIndex === -1) {
@@ -121,25 +123,39 @@
       return;
     }
 
-    // Swap the questions
-    const questions = pageData.questions;
-    const temp = questions[currentIndex];
-    questions[currentIndex] = questions[newIndex];
-    questions[newIndex] = temp;
+    // Get the questions array and make a deep copy
+    const questions = JSON.parse(JSON.stringify(pageData.questions));
 
-    // Update positions
-    questions.forEach((question, index) => {
-      question.position = index;
-      // Update the question data in localStorage
-      const qId = 'form_' + question.id.replace(/^(form_)+/, '');
-      const questionData = JSON.parse(localStorage.getItem(qId) || '{}');
-      questionData.position = index;
-      localStorage.setItem(qId, JSON.stringify(questionData));
-    });
+    // Get the full question data from localStorage for both questions
+    const currentQuestion = questions[currentIndex];
+    const targetQuestion = questions[newIndex];
+
+    // Swap positions while preserving all other data
+    const currentPos = currentQuestion.position;
+    currentQuestion.position = targetQuestion.position;
+    targetQuestion.position = currentPos;
+
+    // Perform the swap in the array
+    questions[currentIndex] = targetQuestion;
+    questions[newIndex] = currentQuestion;
 
     // Save the updated page data
     pageData.questions = questions;
     localStorage.setItem(this.pageId, JSON.stringify(pageData));
+
+    // Update individual question data in localStorage
+    [currentQuestion, targetQuestion].forEach((question) => {
+      if (!question || !question.id) return;
+      const qId = 'form_' + question.id.replace(/^(form_)+/, '');
+      try {
+        const questionData = JSON.parse(localStorage.getItem(qId) || '{}');
+        // Only update the position, preserve all other data
+        questionData.position = question.position;
+        localStorage.setItem(qId, JSON.stringify(questionData));
+      } catch (error) {
+        console.error('Error updating question data:', error);
+      }
+    });
 
     // Refresh the display
     this.loadPageData();
@@ -188,75 +204,57 @@
   }
 
   PageEditor.prototype.loadQuestions = function(pageData) {
-    const questions = [] // Use an array instead of Map
+    const questions = []; // Start with an array
     
-    // First, load questions from page data
+    // First, load questions from page data to get the order
     if (pageData && Array.isArray(pageData.questions)) {
       console.log('Loading questions from page data:', pageData.questions);
-      pageData.questions.forEach(question => {
+      pageData.questions.forEach((question, index) => {
         if (question && question.id) {
           // Clean the ID and ensure it has form_ prefix
           const cleanId = 'form_' + question.id.replace(/^(form_)+/, '');
-          // Initialize position if not set
-          if (typeof question.position !== 'number') {
-            question.position = questions.length;
+          // Get the full question data from localStorage
+          try {
+            const storedData = JSON.parse(localStorage.getItem(cleanId) || '{}');
+            // Merge page data with stored data, preserving position from page data
+            questions.push({
+              ...storedData,
+              ...question,
+              id: cleanId,
+              key: cleanId,
+              position: index, // Use array index as position
+              type: storedData.type || question.type,
+              title: storedData.title || question.title
+            });
+            console.log('Added question:', questions[questions.length - 1]);
+          } catch (error) {
+            console.error('Error loading stored question data:', error);
+            // If we can't get stored data, at least keep the question with basic info
+            questions.push({
+              ...question,
+              id: cleanId,
+              key: cleanId,
+              position: index
+            });
           }
-          questions.push({...question, id: cleanId, key: cleanId})
-          console.log('Added question from page data:', question)
         }
-      })
+      });
     }
 
-    // Then load individual form entries, which might be more up to date
-    const keys = Object.keys(localStorage)
-    console.log('Scanning localStorage keys:', keys)
-
-    // Sort questions by position
+    // Sort questions by position to ensure order
     questions.sort((a, b) => {
-      const posA = typeof a.position === 'number' ? a.position : Infinity
-      const posB = typeof b.position === 'number' ? b.position : Infinity
-      return posA - posB
-    })
+      const posA = typeof a.position === 'number' ? a.position : Infinity;
+      const posB = typeof b.position === 'number' ? b.position : Infinity;
+      return posA - posB;
+    });
 
-    keys.forEach(key => {
-      if (key.startsWith('form_') && key !== 'form_pages') {
-        try {
-          const question = JSON.parse(localStorage.getItem(key))
-          console.log('Found question in localStorage:', { key, question })
-          
-          // Skip questions that don't belong to this page
-          const questionPageId = question.pageId?.startsWith('page_') ? question.pageId : 'page_' + question.pageId
-          if (questionPageId !== this.pageId) {
-            return
-          }
+    // Update positions to be sequential
+    questions.forEach((question, index) => {
+      question.position = index;
+    });
 
-          // Update existing question or add new one
-          const existingIndex = questions.findIndex(q => q.id === key)
-          if (existingIndex >= 0) {
-            questions[existingIndex] = { ...questions[existingIndex], ...question, id: key, key: key }
-          } else {
-            questions.push({ ...question, id: key, key: key, position: questions.length })
-          }
-          } catch (error) {
-            console.error('Error parsing question data:', error)
-          }
-        }
-      })
-
-      // Sort questions by position
-      questions.sort((a, b) => {
-        const posA = typeof a.position === 'number' ? a.position : Infinity
-        const posB = typeof b.position === 'number' ? b.position : Infinity
-        if (posA !== posB) return posA - posB
-        
-        // Then by creation time if positions are equal
-        const timeA = parseInt((a.id || '').split('_')[2]) || 0
-        const timeB = parseInt((b.id || '').split('_')[2]) || 0
-        return timeB - timeA
-      })
-
-      console.log('Final sorted questions:', questions)
-      return questions
+    console.log('Final questions array:', questions);
+    return questions;
   }
 
   PageEditor.prototype.displayFields = function(questions) {
