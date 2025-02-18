@@ -51,13 +51,20 @@ const QuestionTemplates = {
           ${(question.options || []).map((option, i) => {
             const optionText = typeof option === 'object' ? option.text : option;
             const optionValue = typeof option === 'object' ? option.value : option;
+            const optionHint = typeof option === 'object' ? option.hint : '';
             return `
               <div class="govuk-radios__item">
                 <input class="govuk-radios__input" id="${question.id}-${i}" name="${question.id}" 
-                  type="radio" value="${optionValue}">
+                  type="radio" value="${optionValue}"
+                  ${optionHint ? `aria-describedby="${question.id}-${i}-hint"` : ''}>
                 <label class="govuk-label govuk-radios__label" for="${question.id}-${i}">
                   ${optionText}
                 </label>
+                ${optionHint ? `
+                  <div id="${question.id}-${i}-hint" class="govuk-hint govuk-radios__hint">
+                    ${optionHint}
+                  </div>
+                ` : ''}
               </div>
             `;
           }).join('')}
@@ -79,13 +86,20 @@ const QuestionTemplates = {
           ${(question.options || []).map((option, i) => {
             const optionText = typeof option === 'object' ? option.text : option;
             const optionValue = typeof option === 'object' ? option.value : option;
+            const optionHint = typeof option === 'object' ? option.hint : '';
             return `
               <div class="govuk-checkboxes__item">
                 <input class="govuk-checkboxes__input" id="${question.id}-${i}" name="${question.id}" 
-                  type="checkbox" value="${optionValue}">
+                  type="checkbox" value="${optionValue}"
+                  ${optionHint ? `aria-describedby="${question.id}-${i}-hint"` : ''}>
                 <label class="govuk-label govuk-checkboxes__label" for="${question.id}-${i}">
                   ${optionText}
                 </label>
+                ${optionHint ? `
+                  <div id="${question.id}-${i}-hint" class="govuk-hint govuk-checkboxes__hint">
+                    ${optionHint}
+                  </div>
+                ` : ''}
               </div>
             `;
           }).join('')}

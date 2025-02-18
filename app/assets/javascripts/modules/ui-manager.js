@@ -28,8 +28,8 @@ class UIManager {
     });
     
     row.innerHTML = `
-      <td class="govuk-table__cell">
-        <p class="govuk-body">${option.text}</p>
+      <td class="govuk-table__cell" style="vertical-align: middle;">
+        <p class="govuk-body govuk-!-margin-0" data-option-text>${option.text}</p>
       </td>
       <td class="govuk-table__cell govuk-table__cell--numeric" style="white-space: nowrap;">
         <div class="govuk-button-group">

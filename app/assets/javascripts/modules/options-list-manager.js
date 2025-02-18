@@ -59,7 +59,15 @@ class OptionsListManager {
   }
 
   loadSavedOptions() {
-    const questionData = this.storage.getItem(this.questionId);
+    // Get the page data first
+    const pageData = this.storage.getItem(this.pageId);
+    if (!pageData || !pageData.questions) {
+      this.ui.showEmptyState(this.container);
+      return;
+    }
+
+    // Find the question in the page data
+    const questionData = pageData.questions.find(q => q.id === this.questionId);
     if (!questionData || !questionData.options) {
       this.ui.showEmptyState(this.container);
       return;
@@ -81,6 +89,8 @@ class OptionsListManager {
       tbody.appendChild(row);
     });
 
+    // Also update the question data in localStorage for backwards compatibility
+    this.storage.setItem(this.questionId, questionData);
     this.preview.update(questionData);
   }
 
@@ -132,15 +142,26 @@ class OptionsListManager {
       return;
     }
 
-    // Get current question data to preserve title and hint
-    const questionData = this.storage.getItem(this.questionId) || {
-      id: this.questionId,
-      pageId: this.pageId,
-      fieldType: this.fieldType,
-      title: document.querySelector('[data-question-title]')?.value || '',
-      hint: document.querySelector('[data-question-hint]')?.value || '',
-      options: []
+    // Get the current page data
+    const pageData = this.storage.getItem(this.pageId) || {
+      id: this.pageId,
+      title: '',
+      questions: []
     };
+
+    // Find or create the question in the page data
+    let questionData = pageData.questions.find(q => q.id === this.questionId);
+    if (!questionData) {
+      questionData = {
+        id: this.questionId,
+        pageId: this.pageId,
+        fieldType: this.fieldType,
+        title: document.querySelector('[data-question-title]')?.value || '',
+        hint: document.querySelector('[data-question-hint]')?.value || '',
+        options: []
+      };
+      pageData.questions.push(questionData);
+    }
 
     // Add new options
     const newOptions = lists[listId].options.map(option => ({
@@ -161,21 +182,42 @@ class OptionsListManager {
       questionData.options = newOptions;
     }
 
-    if (this.storage.safeUpdate(this.questionId, questionData)) {
+    // Update the question in the page data
+    const questionIndex = pageData.questions.findIndex(q => q.id === this.questionId);
+    if (questionIndex !== -1) {
+      pageData.questions[questionIndex] = questionData;
+    }
+
+    // Save the updated page data
+    if (this.storage.setItem(this.pageId, pageData)) {
+      // Also save to question ID for backwards compatibility
+      this.storage.setItem(this.questionId, questionData);
       this.loadSavedOptions();
       this.preview.update(questionData);
     }
   }
 
   save() {
-    const questionData = this.storage.getItem(this.questionId) || {
-      id: this.questionId,
-      pageId: this.pageId,
-      fieldType: this.fieldType,
+    // Get the current page data
+    const pageData = this.storage.getItem(this.pageId) || {
+      id: this.pageId,
       title: '',
-      hint: '',
-      options: []
+      questions: []
     };
+
+    // Find or create the question in the page data
+    let questionData = pageData.questions.find(q => q.id === this.questionId);
+    if (!questionData) {
+      questionData = {
+        id: this.questionId,
+        pageId: this.pageId,
+        fieldType: this.fieldType,
+        title: '',
+        hint: '',
+        options: []
+      };
+      pageData.questions.push(questionData);
+    }
 
     // Get current title and hint
     const titleInput = document.querySelector('[data-question-title]');
@@ -186,17 +228,35 @@ class OptionsListManager {
     // Get current options from the table
     const tbody = this.container.querySelector('tbody');
     if (tbody) {
-      const currentOptions = this.storage.getItem(this.questionId)?.options || [];
       const currentOptionIds = Array.from(tbody.querySelectorAll('tr')).map(row => row.dataset.optionId);
       
       // Reorder options based on current table order
-      questionData.options = currentOptionIds.map(optionId => 
-        currentOptions.find(opt => opt.id === optionId)
-      ).filter(Boolean);
+      questionData.options = currentOptionIds.map(optionId => {
+        const optionRow = tbody.querySelector(`tr[data-option-id="${optionId}"]`);
+        if (!optionRow) return null;
+
+        const textElement = optionRow.querySelector('[data-option-text]');
+        if (!textElement) return null;
+
+        const text = textElement.textContent;
+        return {
+          id: optionId,
+          text: text,
+          value: text // Use text as value for now
+        };
+      }).filter(Boolean);
     }
 
-    // Safely update storage
-    if (this.storage.safeUpdate(this.questionId, questionData)) {
+    // Update the question in the page data
+    const questionIndex = pageData.questions.findIndex(q => q.id === this.questionId);
+    if (questionIndex !== -1) {
+      pageData.questions[questionIndex] = questionData;
+    }
+
+    // Save the updated page data
+    if (this.storage.setItem(this.pageId, pageData)) {
+      // Also save to question ID for backwards compatibility
+      this.storage.setItem(this.questionId, questionData);
       this.preview.update(questionData);
       return questionData;
     }

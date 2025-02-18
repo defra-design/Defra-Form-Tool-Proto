@@ -71,18 +71,97 @@ router.get('/question-editor/new/:type', (req, res) => {
 
 // Question editor - edit existing
 router.get('/question-editor/:type/:id', (req, res) => {
-  res.render('question-editor', {
+  const questionId = req.params.id;
+  const pageId = req.query.pageId;
+  
+  console.log('Loading question editor with:', {
+    questionId,
+    pageId,
+    type: req.params.type
+  });
+
+  // Load the page data from localStorage
+  let pageData;
+  try {
+    // Access localStorage through req.app.locals
+    const store = req.app.locals.prototypeKit.sessionDataStore;
+    console.log('Available store keys:', Object.keys(store.data));
+    
+    const rawPageData = store.data[pageId];
+    console.log('Raw page data:', rawPageData);
+    
+    pageData = rawPageData ? JSON.parse(rawPageData) : null;
+    console.log('Parsed page data:', pageData);
+  } catch (e) {
+    console.error('Error loading page data:', e);
+    pageData = null;
+  }
+
+  // Find the question in the page's questions array
+  let questionData = null;
+  if (pageData && pageData.questions) {
+    questionData = pageData.questions.find(q => q.id === questionId);
+    console.log('Found question data:', questionData);
+  }
+
+  const templateData = {
+    data: questionData || {}, // Pass the question data to the template
     params: {
       id: req.params.id,
       type: req.params.type,
       pageId: req.query.pageId,
       returnUrl: `/page-editor/${req.query.pageId}`
     }
-  })
-})
+  };
+  
+  console.log('Rendering template with data:', templateData);
 
-// Save question (just redirect back to page editor)
+  res.render('question-editor', templateData);
+});
+
+// Save question
 router.post('/question-editor/:id/save', (req, res) => {
+  const questionId = req.params.id;
+  const pageId = req.body.pageId;
+
+  try {
+    // Load existing page data
+    const rawPageData = localStorage.getItem(pageId);
+    let pageData = rawPageData ? JSON.parse(rawPageData) : { id: pageId, questions: [] };
+
+    // Find the question index in the array
+    const questionIndex = pageData.questions.findIndex(q => q.id === questionId);
+
+    // Create the updated question data
+    const questionData = {
+      id: questionId,
+      pageId: pageId,
+      fieldType: req.body.fieldType,
+      title: req.body.title,
+      hint: req.body.hint,
+      maxLength: req.body.maxLength,
+      pattern: req.body.pattern,
+      min: req.body.min,
+      max: req.body.max,
+      accept: req.body.accept,
+      maxSize: req.body.maxSize
+    };
+
+    // Update or add the question
+    if (questionIndex !== -1) {
+      pageData.questions[questionIndex] = questionData;
+    } else {
+      pageData.questions.push(questionData);
+    }
+
+    // Save the updated page data
+    localStorage.setItem(pageId, JSON.stringify(pageData));
+
+    console.log('Saved question data:', questionData);
+  } catch (e) {
+    console.error('Error saving question:', e);
+  }
+
   res.redirect(req.body.returnUrl || `/page-editor/${req.body.pageId}`);
 });
 

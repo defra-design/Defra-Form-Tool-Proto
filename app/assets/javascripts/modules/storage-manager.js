@@ -29,25 +29,36 @@ class StorageManager {
   }
 
   validateData(data) {
+    // Basic type check
     if (!data || typeof data !== 'object') return false;
     
-    // Required fields for question data
-    if (data.id && data.pageId && data.fieldType) {
-      // If it has options, validate them
+    // Check if it's a page (has questions array)
+    if (data.id && Array.isArray(data.questions)) {
+      // Allow empty questions array or partially complete questions during editing
+      if (data.questions.length === 0) return true;
+      
+      // For non-empty questions, ensure they're objects
+      return data.questions.every(question => 
+        question && typeof question === 'object'
+      );
+    }
+    
+    // Check if it's a question
+    if (data.id) {
+      // If it has options, just ensure it's an array
       if (data.options) {
-        if (!Array.isArray(data.options)) return false;
-        return data.options.every(option => 
-          option && 
-          typeof option === 'object' && 
-          option.id && 
-          typeof option.text === 'string'
-        );
+        return Array.isArray(data.options);
       }
       return true;
     }
     
-    // If it's a single option, validate its structure
-    return data.id && typeof data.text === 'string';
+    // If it's a single option
+    if (data.id && data.text) {
+      return true;
+    }
+    
+    // If none of the above patterns match, it's invalid
+    return false;
   }
 
   safeUpdate(key, newData, existingData = null) {

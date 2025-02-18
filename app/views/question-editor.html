@@ -155,21 +155,25 @@
     };
 
     // Get or initialize question data
-    let questionData = storageManager.getItem(questionId) || {
-      id: questionId,
-      pageId: pageId,
-      fieldType: fieldType,
-      title: '',
-      hint: '',
-      options: isOptionsField ? [] : undefined,
-      ...getFieldDefaults(fieldType)
-    };
+    const pageData = storageManager.getItem(pageId);
+    let questionData;
+    
+    if (pageData && pageData.questions) {
+      // Find the question in the page's questions array
+      questionData = pageData.questions.find(q => q.id === questionId);
+    }
 
-    // Initialize storage if needed
-    if (!storageManager.getItem(questionId)) {
-      storageManager.setItem(questionId, questionData);
-    } else {
-      questionData = storageManager.getItem(questionId);
+    // If no existing data, initialize with defaults
+    if (!questionData) {
+      questionData = {
+        id: questionId,
+        pageId: pageId,
+        fieldType: fieldType,
+        title: '',
+        hint: '',
+        options: isOptionsField ? [] : undefined,
+        ...getFieldDefaults(fieldType)
+      };
     }
 
     // Load saved data into form fields
@@ -181,13 +185,62 @@
 
     // Function to save field data
     const saveFieldData = () => {
-      // Update common fields
-      questionData.title = titleInput ? titleInput.value : '';
-      questionData.hint = hintInput ? hintInput.value : '';
-      
-      // Save and update preview
-      storageManager.setItem(questionId, questionData);
-      previewManager.update(questionData);
+      try {
+        // Get the current page data first
+        const existingPageData = storageManager.getItem(pageId);
+        if (!existingPageData) {
+          console.error('Could not load existing page data');
+          return;
+        }
+
+        // Create updated question data preserving existing fields
+        const updatedQuestionData = {
+          ...questionData,  // Keep existing data
+          id: questionId,
+          pageId: pageId,
+          fieldType: fieldType,
+          title: titleInput ? titleInput.value : questionData.title || '',
+          hint: hintInput ? hintInput.value : questionData.hint || ''
+        };
+
+        // Add field-specific data
+        if (fieldType === 'number') {
+          updatedQuestionData.min = document.getElementById('min')?.value || questionData.min || '';
+          updatedQuestionData.max = document.getElementById('max')?.value || questionData.max || '';
+        } else if (fieldType === 'text' || fieldType === 'textarea') {
+          updatedQuestionData.maxLength = document.getElementById('maxLength')?.value || questionData.maxLength || '';
+        } else if (fieldType === 'tel' || fieldType === 'email') {
+          updatedQuestionData.pattern = document.getElementById('pattern')?.value || questionData.pattern || '';
+        } else if (fieldType === 'file') {
+          updatedQuestionData.accept = document.getElementById('accept')?.value || questionData.accept || '';
+          updatedQuestionData.maxSize = document.getElementById('maxSize')?.value || questionData.maxSize || '';
+        }
+
+        // Create updated page data
+        const updatedPageData = {
+          ...existingPageData,
+          questions: [...existingPageData.questions]  // Create new array to avoid reference issues
+        };
+
+        // Find or create the question in the questions array
+        const questionIndex = updatedPageData.questions.findIndex(q => q.id === questionId);
+        if (questionIndex !== -1) {
+          updatedPageData.questions[questionIndex] = updatedQuestionData;
+        } else {
+          updatedPageData.questions.push(updatedQuestionData);
+        }
+
+        // Try to save and only update if successful
+        if (storageManager.setItem(pageId, updatedPageData)) {
+          // Update was successful, update our local reference
+          questionData = updatedQuestionData;
+          previewManager.update(questionData);
+        } else {
+          console.error('Failed to save question data');
+        }
+      } catch (error) {
+        console.error('Error saving question data:', error);
+      }
     };
 
     // Set up event listeners for all fields
@@ -236,27 +289,61 @@
     const form = document.querySelector('[data-question-form]');
     if (form) {
       form.addEventListener('submit', (e) => {
-        const currentData = JSON.parse(localStorage.getItem(questionId) || '{}');
+        e.preventDefault();
         
-        // Update page data
-        const pageDataStr = localStorage.getItem(pageId);
-        let pageData;
-        try {
-          pageData = pageDataStr ? JSON.parse(pageDataStr) : { questions: [] };
-        } catch (error) {
-          console.error('Error parsing page data:', error);
-          pageData = { questions: [] };
+        // Force a final save with all field data
+        const formData = new FormData(form);
+        const updatedQuestionData = {
+          ...questionData,
+          id: formData.get('id'),
+          pageId: formData.get('pageId'),
+          fieldType: formData.get('fieldType'),
+          title: formData.get('title'),
+          hint: formData.get('hint')
+        };
+
+        // Add field-specific data
+        if (fieldType === 'number') {
+          updatedQuestionData.min = formData.get('min');
+          updatedQuestionData.max = formData.get('max');
+        } else if (fieldType === 'text' || fieldType === 'textarea') {
+          updatedQuestionData.maxLength = formData.get('maxLength');
+        } else if (fieldType === 'tel' || fieldType === 'email') {
+          updatedQuestionData.pattern = formData.get('pattern');
+        } else if (fieldType === 'file') {
+          updatedQuestionData.accept = formData.get('accept');
+          updatedQuestionData.maxSize = formData.get('maxSize');
+        } else if (isOptionsField) {
+          // For radio, checkbox, or select fields, get the options from localStorage
+          const questionOptions = storageManager.getItem(questionId);
+          if (questionOptions && questionOptions.options) {
+            updatedQuestionData.options = questionOptions.options;
+          }
         }
-        
-        // Find and update question in page data
-        const questionIndex = pageData.questions.findIndex(q => q.id === questionId);
-        if (questionIndex >= 0) {
-          pageData.questions[questionIndex] = currentData;
+
+        // Get current page data
+        const existingPageData = storageManager.getItem(pageId) || { 
+          id: pageId,
+          title: '',
+          questions: []
+        };
+
+        // Find or create the question in the questions array
+        const questionIndex = existingPageData.questions.findIndex(q => q.id === questionId);
+        if (questionIndex !== -1) {
+          existingPageData.questions[questionIndex] = updatedQuestionData;
         } else {
-          pageData.questions.push(currentData);
+          existingPageData.questions.push(updatedQuestionData);
         }
-        
-        localStorage.setItem(pageId, JSON.stringify(pageData));
+
+        // Save the final state
+        if (storageManager.setItem(pageId, existingPageData)) {
+          // Get the return URL and redirect
+          const returnUrl = formData.get('returnUrl');
+          window.location.href = returnUrl;
+        } else {
+          console.error('Failed to save question data');
+        }
       });
     }
   });
