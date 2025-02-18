@@ -89,8 +89,7 @@ class OptionsListManager {
       tbody.appendChild(row);
     });
 
-    // Also update the question data in localStorage for backwards compatibility
-    this.storage.setItem(this.questionId, questionData);
+    // Update the preview with the question data
     this.preview.update(questionData);
   }
 
@@ -190,8 +189,6 @@ class OptionsListManager {
 
     // Save the updated page data
     if (this.storage.setItem(this.pageId, pageData)) {
-      // Also save to question ID for backwards compatibility
-      this.storage.setItem(this.questionId, questionData);
       this.loadSavedOptions();
       this.preview.update(questionData);
     }
@@ -255,8 +252,6 @@ class OptionsListManager {
 
     // Save the updated page data
     if (this.storage.setItem(this.pageId, pageData)) {
-      // Also save to question ID for backwards compatibility
-      this.storage.setItem(this.questionId, questionData);
       this.preview.update(questionData);
       return questionData;
     }

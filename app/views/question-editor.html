@@ -112,12 +112,16 @@
 </div>
 {% endblock %}
 
-{% block pageScripts %}
-<!-- Load the new modular scripts -->
+{% block moduleScripts %}
+<!-- Load modules first -->
 <script src="/public/javascripts/modules/storage-manager.js"></script>
 <script src="/public/javascripts/modules/ui-manager.js"></script>
 <script src="/public/javascripts/modules/preview-manager.js"></script>
 <script src="/public/javascripts/modules/options-list-manager.js"></script>
+{% endblock %}
+
+{% block pageScripts %}
+<!-- Load page-specific scripts -->
 <script src="/public/javascripts/options.js"></script>
 
 <script>
@@ -314,10 +318,13 @@
           updatedQuestionData.accept = formData.get('accept');
           updatedQuestionData.maxSize = formData.get('maxSize');
         } else if (isOptionsField) {
-          // For radio, checkbox, or select fields, get the options from localStorage
-          const questionOptions = storageManager.getItem(questionId);
-          if (questionOptions && questionOptions.options) {
-            updatedQuestionData.options = questionOptions.options;
+          // For radio, checkbox, or select fields, get the options from the page data
+          const currentPageData = storageManager.getItem(pageId);
+          if (currentPageData && currentPageData.questions) {
+            const currentQuestion = currentPageData.questions.find(q => q.id === questionId);
+            if (currentQuestion && currentQuestion.options) {
+              updatedQuestionData.options = currentQuestion.options;
+            }
           }
         }
 

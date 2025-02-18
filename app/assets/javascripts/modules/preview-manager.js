@@ -46,19 +46,28 @@ class PreviewManager {
         const componentName = fieldType === 'checkbox' ? 'checkboxes' : 'radios';
         inputHtml = `
           <div class="govuk-${componentName}" data-module="govuk-${componentName}">
-            ${options.map((option, index) => `
-              <div class="govuk-${componentName}__item">
-                <input class="govuk-${componentName}__input" 
-                       id="option${index}" 
-                       name="${fieldType === 'radio' ? 'question' : 'question'}"
-                       type="${fieldType}" 
-                       value="${option.value || option.text}">
-                <label class="govuk-label govuk-${componentName}__label" for="option${index}">
-                  ${option.text}
-                </label>
-                ${option.hint ? `<div class="govuk-hint govuk-${componentName}__hint">${option.hint}</div>` : ''}
-              </div>
-            `).join('')}
+            ${options.map((option, index) => {
+              const optionId = `question-${index}`;
+              const hintId = option.hint ? `${optionId}-hint` : '';
+              return `
+                <div class="govuk-${componentName}__item">
+                  <input class="govuk-${componentName}__input" 
+                         id="${optionId}" 
+                         name="question"
+                         type="${fieldType}" 
+                         value="${option.value || option.text}"
+                         ${option.hint ? `aria-describedby="${hintId}"` : ''}>
+                  <label class="govuk-label govuk-${componentName}__label" for="${optionId}">
+                    ${option.text}
+                  </label>
+                  ${option.hint ? `
+                    <div id="${hintId}" class="govuk-hint govuk-${componentName}__hint">
+                      ${option.hint}
+                    </div>
+                  ` : ''}
+                </div>
+              `;
+            }).join('')}
           </div>`;
         break;
 

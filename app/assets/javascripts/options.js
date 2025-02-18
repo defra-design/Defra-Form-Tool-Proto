@@ -25,7 +25,7 @@
               previewManager
             );
 
-            // Set required properties
+            // Set required properties from data attributes
             optionsManager.questionId = container.getAttribute('data-question-id');
             optionsManager.pageId = container.getAttribute('data-page-id');
             optionsManager.fieldType = container.getAttribute('data-field-type');
