@@ -1,0 +1,94 @@
+{# app/views/json-viewer.html #}
+{% extends "layouts/main.html" %}
+
+{% set pageTitle = "JSON Viewer - Forms Designer" %}
+
+{% block moduleScripts %}
+<script src="/public/javascripts/modules/storage-manager.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-full">
+    <h1 class="govuk-heading-l">Form Data JSON Viewer</h1>
+    
+    <div class="govuk-tabs" data-module="govuk-tabs">
+      <h2 class="govuk-tabs__title">Form Data</h2>
+      <ul class="govuk-tabs__list">
+        <li class="govuk-tabs__list-item govuk-tabs__list-item--selected">
+          <a class="govuk-tabs__tab" href="#pages">Pages</a>
+        </li>
+        <li class="govuk-tabs__list-item">
+          <a class="govuk-tabs__tab" href="#lists">Lists</a>
+        </li>
+      </ul>
+
+      <div class="govuk-tabs__panel" id="pages">
+        <h2 class="govuk-heading-m">Pages Data</h2>
+        <pre class="app-json-preview" data-pages-json>
+          <!-- Pages JSON will be inserted here -->
+        </pre>
+      </div>
+
+      <div class="govuk-tabs__panel govuk-tabs__panel--hidden" id="lists">
+        <h2 class="govuk-heading-m">Lists Data</h2>
+        <pre class="app-json-preview" data-lists-json>
+          <!-- Lists JSON will be inserted here -->
+        </pre>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block pageScripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    // Function to get and format JSON data
+    const formatJson = (data) => {
+      return JSON.stringify(data, null, 2);
+    };
+
+    // Get pages data
+    const pagesJsonContainer = document.querySelector('[data-pages-json]');
+    const pagesData = {};
+    
+    // Get all keys from localStorage
+    Object.keys(localStorage).forEach(key => {
+      if (key.startsWith('page_')) {
+        try {
+          pagesData[key] = JSON.parse(localStorage.getItem(key));
+        } catch (e) {
+          console.error(`Error parsing data for ${key}:`, e);
+        }
+      }
+    });
+
+    if (pagesJsonContainer) {
+      pagesJsonContainer.textContent = formatJson(pagesData);
+    }
+
+    // Get lists data
+    const listsJsonContainer = document.querySelector('[data-lists-json]');
+    const listsData = JSON.parse(localStorage.getItem('lists') || '{}');
+
+    if (listsJsonContainer) {
+      listsJsonContainer.textContent = formatJson(listsData);
+    }
+  });
+</script>
+
+<style>
+  .app-json-preview {
+    background: #f8f8f8;
+    padding: 1.5rem;
+    overflow-x: auto;
+    font-family: monospace;
+    font-size: 16px;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    border: 2px solid #b1b4b6;
+  }
+</style>
+{% endblock %}

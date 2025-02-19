@@ -23,6 +23,11 @@ router.use((req, res, next) => {
   next()
 })
 
+// JSON Viewer
+router.get('/json-viewer', (req, res) => {
+  res.render('json-viewer')
+})
+
 // Redirect root to pages list
 router.get('/', (req, res) => {
   res.redirect('/pages')
