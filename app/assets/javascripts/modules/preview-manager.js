@@ -78,6 +78,32 @@ class PreviewManager {
           </select>`;
         break;
 
+      case 'autocomplete':
+        inputHtml = `
+          <select class="govuk-select" id="question" name="question">
+            <option value="">Please select</option>
+            ${options.map(option => `<option value="${option.value || option.text}">${option.text}</option>`).join('')}
+          </select>`;
+        // Initialize autocomplete after rendering
+        const observer = new MutationObserver((mutations, obs) => {
+          const selectElement = this.container.querySelector('select');
+          if (selectElement && !selectElement.classList.contains('autocomplete-enhanced')) {
+            if (typeof accessibleAutocomplete !== 'undefined') {
+              accessibleAutocomplete.enhanceSelectElement({
+                selectElement: selectElement,
+                minLength: 2,
+                defaultValue: '',
+                showAllValues: true,
+                autoselect: false
+              });
+              selectElement.classList.add('autocomplete-enhanced');
+              obs.disconnect(); // Stop observing once we've enhanced
+            }
+          }
+        });
+        observer.observe(this.container, { childList: true, subtree: true });
+        break;
+
       case 'textarea':
         inputHtml = `<textarea class="govuk-textarea" id="question" name="question" rows="5"></textarea>`;
         break;

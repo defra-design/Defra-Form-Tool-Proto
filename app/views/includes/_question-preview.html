@@ -129,6 +129,20 @@
       {% endif %}
     </select>
 
+  {% elif data.fieldType == 'autocomplete' %}
+    <select class="govuk-select" id="preview-field" name="preview-answer"
+            {% if not data.title %}disabled{% endif %}
+            aria-describedby="preview-hint">
+      <option value="">Please select</option>
+      {% if data.options and data.options.length > 0 %}
+        {% for option in data.options %}
+          <option value="{{ option.value }}">{{ option.text }}</option>
+        {% endfor %}
+      {% else %}
+        <option value="" disabled>Add options to select from</option>
+      {% endif %}
+    </select>
+
   {% elif data.fieldType == 'date' %}
     <div class="govuk-date-input" id="preview-date">
       <div class="govuk-date-input__item">

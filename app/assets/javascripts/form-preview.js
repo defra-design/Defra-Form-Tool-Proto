@@ -129,6 +129,30 @@
       `
     },
 
+    autocomplete: function(field, fieldId) {
+      return `
+        <div class="govuk-form-group">
+          <label class="govuk-label" for="${fieldId}">
+            ${field.title || 'Untitled field'}
+          </label>
+          ${field.hint ? `
+            <div id="${fieldId}-hint" class="govuk-hint">
+              ${field.hint}
+            </div>
+          ` : ''}
+          <select class="govuk-select" id="${fieldId}" name="${fieldId}"
+                  ${field.hint ? `aria-describedby="${fieldId}-hint"` : ''}>
+            <option value="">Please select</option>
+            ${(field.options || []).map(option => `
+              <option value="${option.value || option.text || ''}">
+                ${option.text || ''}
+              </option>
+            `).join('')}
+          </select>
+        </div>
+      `
+    },
+
     date: function(field, fieldId) {
       return `
         <div class="govuk-form-group">

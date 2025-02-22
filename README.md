@@ -6,7 +6,8 @@ A form building tool built on the GOV.UK Prototype Kit that allows you to create
 
 ### Core Features
 - Create multi-page forms with an intuitive interface
-- Support for multiple field types (text, textarea, radio, checkbox, select, date, etc.)
+- Support for multiple field types (text, textarea, radio, checkbox, select, date, autocomplete, etc.)
+- Enhanced select fields with autocomplete functionality
 - Form preview with Previous/Continue navigation
 - Custom Defra-styled header
 
@@ -15,6 +16,7 @@ A form building tool built on the GOV.UK Prototype Kit that allows you to create
 - Live preview using PreviewManager module with official GDS markup
 - Data persistence using StorageManager module and localStorage
 - Full GDS component styling and accessibility features
+- Accessible autocomplete integration using accessible-autocomplete library
 
 ## Quick Start
 
@@ -46,9 +48,11 @@ The tool uses a modular JavaScript architecture:
 ### Core Modules
 - **PreviewManager**: Handles real-time field previews using official GDS markup
 - **StorageManager**: Manages data persistence and state management
+- **AutocompleteManager**: Manages enhanced select fields with autocomplete functionality
 
 ### Supporting Scripts
 - **options.js**: Manages field configuration and options
+- **question-templates.js**: Contains templates for all field types including autocomplete
 - **pages.js**: Handles page creation and management
 - **form-preview.js**: Controls the complete form preview functionality
 

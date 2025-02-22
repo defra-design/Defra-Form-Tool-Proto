@@ -48,7 +48,7 @@
         <h3 class="govuk-heading-m">Key Features</h3>
         <ul class="govuk-list govuk-list--bullet">
           <li>Create multi-page forms</li>
-          <li>Add various field types including text, textarea, radio buttons, checkboxes, and select dropdowns</li>
+          <li>Add various field types including text, textarea, radio buttons, checkboxes, select dropdowns, and enhanced autocomplete fields</li>
           <li>Live preview of fields as you build them</li>
           <li>Manage pages and fields through an intuitive interface</li>
           <li>Data persistence using localStorage</li>
@@ -186,7 +186,13 @@
           <div class="govuk-summary-list__row">
             <dt class="govuk-summary-list__key">options.js</dt>
             <dd class="govuk-summary-list__value">
-              Handles the management of options for radio, checkbox, and select fields. Includes adding, editing, and removing options.
+              Handles the management of options for radio, checkbox, select, and autocomplete fields. Includes adding, editing, and removing options.
+            </dd>
+          </div>
+          <div class="govuk-summary-list__row">
+            <dt class="govuk-summary-list__key">autocomplete-manager.js</dt>
+            <dd class="govuk-summary-list__value">
+              Manages the enhancement of select fields into autocomplete fields using the accessible-autocomplete library. Handles initialization and updates.
             </dd>
           </div>
         </dl>
@@ -220,10 +226,10 @@
               <pre class="govuk-body"><code>{
   id: "form_[timestamp]",
   pageId: "page_[timestamp]",
-  fieldType: "text|textarea|radio|etc",
+  fieldType: "text|textarea|radio|checkbox|select|autocomplete|etc",
   title: "Question Text",
   hint: "Optional hint text",
-  options: [] // For radio, checkbox, select
+  options: [] // For radio, checkbox, select, autocomplete
 }</code></pre>
             </dd>
           </div>

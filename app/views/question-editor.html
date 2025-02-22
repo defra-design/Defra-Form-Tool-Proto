@@ -7,6 +7,20 @@
   Question Editor – {{ params.type | capitalize }} Question
 {% endblock %}
 
+{% block head %}
+  {{ super() }}
+  {% if params.type === 'autocomplete' %}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/accessible-autocomplete@2.0.4/dist/accessible-autocomplete.min.css">
+  {% endif %}
+{% endblock %}
+
+{% block autocompleteAssets %}
+{% if params.type === 'autocomplete' %}
+  <script src="https://cdn.jsdelivr.net/npm/accessible-autocomplete@2.0.4/dist/accessible-autocomplete.min.js"></script>
+  <script src="/public/javascripts/modules/autocomplete-manager.js"></script>
+{% endif %}
+{% endblock %}
+
 {% block beforeContent %}
   {{ govukBackLink({
     text: "Back",
@@ -46,7 +60,7 @@
         <input class="govuk-input" id="hint" name="hint" type="text" value="{{ data.hint }}" data-question-hint>
       </div>
 
-      {% if params.type === 'radio' or params.type === 'checkbox' or params.type === 'select' %}
+      {% if params.type === 'radio' or params.type === 'checkbox' or params.type === 'select' or params.type === 'autocomplete' %}
         {% include "includes/_option-list.html" %}
       {% endif %}
 
@@ -129,7 +143,7 @@
     const questionId = document.querySelector('input[name="id"]').value;
     const fieldType = document.querySelector('input[name="fieldType"]').value;
     const pageId = document.querySelector('input[name="pageId"]').value;
-    const isOptionsField = ['radio', 'checkbox', 'select'].includes(fieldType);
+    const isOptionsField = ['radio', 'checkbox', 'select', 'autocomplete'].includes(fieldType);
     
     // Initialize managers
     const storageManager = new Prototype.StorageManager();
@@ -277,6 +291,11 @@
 
     // Initialize options management if needed
     if (isOptionsField) {
+      // Initialize autocomplete if needed
+      if (fieldType === 'autocomplete' && window.Prototype.AutocompleteManager) {
+        new window.Prototype.AutocompleteManager();
+      }
+
       const optionList = document.querySelector('[data-option-list]');
       if (optionList) {
         optionList.setAttribute('data-options-list', '');

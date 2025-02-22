@@ -128,6 +128,27 @@ const QuestionTemplates = {
     </div>
   `,
 
+  autocomplete: (question, title, hint) => `
+    <div class="govuk-form-group">
+      <h1 class="govuk-label-wrapper">
+        <label class="govuk-label govuk-label--l" for="${question.id}">
+          ${title}
+        </label>
+      </h1>
+      ${hint ? `<div id="${question.id}-hint" class="govuk-hint">${hint}</div>` : ''}
+      <select class="govuk-select" id="${question.id}" name="${question.id}"
+        data-autocomplete
+        ${hint ? `aria-describedby="${question.id}-hint"` : ''}>
+        <option value="">Please select</option>
+        ${(question.options || []).map(option => {
+          const optionText = typeof option === 'object' ? option.text : option;
+          const optionValue = typeof option === 'object' ? option.value : option;
+          return `<option value="${optionValue}">${optionText}</option>`;
+        }).join('')}
+      </select>
+    </div>
+  `,
+
   date: (question, title, hint) => `
     <div class="govuk-form-group">
       <fieldset class="govuk-fieldset" role="group" ${hint ? `aria-describedby="${question.id}-hint"` : ''}>
