@@ -5,6 +5,18 @@
 
 // Add extra styles here
 
+// Field editor styling
+.field-editor-column {
+  border-left: 10px solid #008938;
+}
+
+// Preview column styling
+.preview-column {
+  outline: solid 1px #008938;
+  box-shadow: 5px 10px #008938;
+  padding: 20px;
+}
+
 // Override the GOV.UK container width
 .govuk-width-container {
   max-width: 1200px;

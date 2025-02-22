@@ -30,7 +30,7 @@
 
 {% block content %}
 <div class="govuk-grid-row">
-  <div class="govuk-grid-column-one-half">
+  <div class="govuk-grid-column-one-half field-editor-column">
     <form method="post" action="/question-editor/{{ params.id }}/save" data-question-form>
       <input type="hidden" name="id" value="{{ params.id }}">
       <input type="hidden" name="pageId" value="{{ params.pageId }}">
@@ -116,7 +116,7 @@
   </div>
 
   <div class="govuk-grid-column-one-half">
-    <div class="app-preview-panel">
+    <div class="app-preview-panel preview-column">
       <h2 class="govuk-heading-m">Preview</h2>
       <div data-question-preview>
         <!-- Preview content will be inserted here by JavaScript -->
