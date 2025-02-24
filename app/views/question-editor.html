@@ -117,9 +117,63 @@
 
   <div class="govuk-grid-column-one-half">
     <div class="app-preview-panel preview-column">
-      <h2 class="govuk-heading-m">Preview</h2>
-      <div data-question-preview>
-        <!-- Preview content will be inserted here by JavaScript -->
+      <div class="govuk-tabs" data-module="govuk-tabs">
+        <h2 class="govuk-tabs__title">Preview sections</h2>
+        <ul class="govuk-tabs__list">
+          <li class="govuk-tabs__list-item govuk-tabs__list-item--selected">
+            <a class="govuk-tabs__tab" href="#preview-tab">
+              Preview
+            </a>
+          </li>
+          <li class="govuk-tabs__list-item">
+            <a class="govuk-tabs__tab" href="#error-messages-tab">
+              Error messages
+            </a>
+          </li>
+        </ul>
+
+        <div class="govuk-tabs__panel" id="preview-tab">
+          <h2 class="govuk-heading-m">Preview</h2>
+          <div data-question-preview>
+            <!-- Preview content will be inserted here by JavaScript -->
+          </div>
+        </div>
+
+        <div class="govuk-tabs__panel govuk-tabs__panel--hidden" id="error-messages-tab">
+          <h2 class="govuk-heading-m">Error messages</h2>
+          <div class="govuk-error-summary" data-module="govuk-error-summary">
+            <div role="alert">
+              <h2 class="govuk-error-summary__title">
+                Example error states
+              </h2>
+              <div class="govuk-error-summary__body">
+                <ul class="govuk-list govuk-error-summary__list">
+                  <li>
+                    <a href="#">The field is empty</a>
+                  </li>
+                  <li>
+                    <a href="#">The text is too long</a>
+                  </li>
+                  <li>
+                    <a href="#">The text contains invalid characters</a>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <div class="govuk-form-group govuk-form-group--error">
+            <h3 class="govuk-label-wrapper">
+              <label class="govuk-label govuk-label--m" for="error-example">
+                Error state example
+              </label>
+            </h3>
+            <div id="error-example-error" class="govuk-error-message">
+              <span class="govuk-visually-hidden">Error:</span> Please enter valid text
+            </div>
+            <textarea class="govuk-textarea govuk-textarea--error" id="error-example" name="error-example" rows="5" aria-describedby="error-example-error"></textarea>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -137,6 +191,17 @@
 {% block pageScripts %}
 <!-- Load page-specific scripts -->
 <script src="/public/javascripts/options.js"></script>
+
+<!-- Initialize tabs -->
+<script>
+  // Ensure tabs are initialized
+  document.addEventListener('DOMContentLoaded', function() {
+    const tabs = document.querySelector('[data-module="govuk-tabs"]');
+    if (tabs && window.GOVUKFrontend && window.GOVUKFrontend.Tabs) {
+      new window.GOVUKFrontend.Tabs(tabs).init();
+    }
+  });
+</script>
 
 <script>
   document.addEventListener('DOMContentLoaded', (event) => {
