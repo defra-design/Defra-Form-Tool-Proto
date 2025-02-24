@@ -24,7 +24,10 @@ class UIManager {
   createOptionRow(option, index, total, questionId, pageId, fieldType) {
     const row = this.createElement('tr', {
       classList: ['govuk-table__row'],
-      dataset: { optionId: option.id }
+      dataset: { 
+        optionId: option.id,
+        optionData: JSON.stringify(option)
+      }
     });
     
     row.innerHTML = `

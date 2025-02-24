@@ -225,23 +225,19 @@ class OptionsListManager {
     // Get current options from the table
     const tbody = this.container.querySelector('tbody');
     if (tbody) {
-      const currentOptionIds = Array.from(tbody.querySelectorAll('tr')).map(row => row.dataset.optionId);
-      
-      // Reorder options based on current table order
-      questionData.options = currentOptionIds.map(optionId => {
-        const optionRow = tbody.querySelector(`tr[data-option-id="${optionId}"]`);
-        if (!optionRow) return null;
-
-        const textElement = optionRow.querySelector('[data-option-text]');
-        if (!textElement) return null;
-
-        const text = textElement.textContent;
-        return {
-          id: optionId,
-          text: text,
-          value: text // Use text as value for now
-        };
-      }).filter(Boolean);
+      try {
+        // Extract options from the stored data in the correct order
+        questionData.options = Array.from(tbody.querySelectorAll('tr')).map(row => {
+          const optionData = row.dataset.optionData;
+          if (!optionData) {
+            console.error('Missing option data for row:', row);
+            return null;
+          }
+          return JSON.parse(optionData);
+        }).filter(option => option !== null); // Remove any null entries
+      } catch (error) {
+        console.error('Error parsing option data:', error);
+      }
     }
 
     // Update the question in the page data
