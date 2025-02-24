@@ -1,0 +1,131 @@
+<h1 class="govuk-heading-l">Settings</h1>
+                        
+<!-- question settings -->
+                              
+<div class="govuk-form-group">
+  <fieldset class="govuk-fieldset" aria-describedby="contact-hint">
+    <legend class="govuk-fieldset__legend govuk-fieldset__legend--m">
+      <h1 class="govuk-fieldset__heading">
+        Page heading and guidance text
+      </h1>
+    </legend>
+    <div id="contact-hint" class="govuk-hint">
+      Add a page heading if you have multiple questions on a page or add guidance to help users answer questions
+    </div>
+    <div class="govuk-checkboxes" data-module="govuk-checkboxes">
+      <div class="govuk-checkboxes__item">
+        <input class="govuk-checkboxes__input" id="guidance" name="guidance" type="checkbox" value="guidance" data-aria-controls="conditional-guidance">
+        <label class="govuk-label govuk-checkboxes__label" for="guidance">
+          Add a page heading, guidance or both
+        </label>
+      </div>
+      <div class="govuk-checkboxes__conditional govuk-checkboxes__conditional--hidden" id="conditional-guidance">
+        <div class="govuk-form-group">
+          <fieldset class="govuk-fieldset" role="group" aria-describedby="dob-hint">
+           <div class="govuk-form-group">
+             <h1 class="govuk-label-wrapper">
+               <label class="govuk-label govuk-label--l" for="event-name">
+                 Page heading
+               </label>
+             </h1>
+             <div id="event-name-hint" class="govuk-hint">
+               Ihis Should be a statement, not a question. For example,
+               'Passport information'
+             </div>
+             <input class="govuk-input" id="event-name" name="eventName" type="text" aria-describedby="event-name-hint">
+           </div>
+           <div class="govuk-form-group">
+             <h1 class="govuk-label-wrapper">
+               <label class="govuk-label govuk-label--l" for="more-detail">
+                 Guidance text (optional)
+               </label>
+             </h1>
+             <div id="more-detail-hint" class="govuk-hint">
+               You can use Markdown if you want to format the content
+               or add links
+             </div>
+             <textarea class="govuk-textarea" id="more-detail" name="moreDetail" rows="5" aria-describedby="more-detail-hint"></textarea>
+           </div>
+          </fieldset>
+        </div>
+        
+        
+        </div>
+        <a href="" class="govuk-button govuk-!-margin-top-4" role="button">
+          Save and update
+        </a>
+      </div>
+  </fieldset>
+</div>
+
+<!-- question settings -->
+
+
+<!-- experimental multiple question -->
+
+<hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
+
+<div class="govuk-form-group">
+  <fieldset class="govuk-fieldset" aria-describedby="contact-hint">
+    <legend class="govuk-fieldset__legend govuk-fieldset__legend--m">
+      <h1 class="govuk-fieldset__heading">
+        Multiple responses
+      </h1>
+    </legend>
+    <div id="contact-hint" class="govuk-hint">
+      For scenarios where users need to give multiple responses to the same question(s)
+    </div>
+    <div class="govuk-checkboxes" data-module="govuk-checkboxes">
+      <div class="govuk-checkboxes__item">
+        <input class="govuk-checkboxes__input" id="contact" name="contact" type="checkbox" value="email" data-aria-controls="conditional-contact">
+        <label class="govuk-label govuk-checkboxes__label" for="contact">
+          Allow multiple responses to questions on this page
+        </label>
+      </div>
+      <div class="govuk-checkboxes__conditional govuk-checkboxes__conditional--hidden" id="conditional-contact">
+        <div class="govuk-form-group">
+          <fieldset class="govuk-fieldset" role="group" aria-describedby="dob-hint">
+            <legend class="govuk-fieldset__legend govuk-fieldset__legend">
+              <label class="govuk-label govuk-label--s">Set the minimum and maximum times a user can
+                answer questions</label>
+            </legend>
+            <div id="dob-hint" class="govuk-hint">The range must be between 2 and 25</div>
+            <div class="govuk-date-input" id="dob">
+              <div class="govuk-date-input__item">
+                <div class="govuk-form-group">
+                  <label class="govuk-label govuk-date-input__label" for="dob-day">Min</label>
+                  <input class="govuk-input govuk-date-input__input govuk-input--width-2" id="dob-day" name="dob-day" type="text" autocomplete="bday-day" inputmode="numeric">
+                </div>
+              </div>
+              <div class="govuk-date-input__item">
+                <div class="govuk-form-group">
+                  <label class="govuk-label govuk-date-input__label" for="dob-month">Max</label>
+                  <input class="govuk-input govuk-date-input__input govuk-input--width-2" id="dob-month" name="dob-month" type="text" autocomplete="bday-month" inputmode="numeric">
+                </div>
+              </div>
+            </div>
+          </fieldset>
+        </div>
+        
+        <div class="govuk-form-group">
+          <h1 class="govuk-label-wrapper">
+            <label class="govuk-label govuk-label--s" for="set-name">
+              Give the responses an identifiable name or label
+            </label>
+          </h1>
+        
+          <div id="set-name-hint" class="govuk-hint">
+            Use a word that helps describe the individual response. For example, 'cow', 'pet'. This will be used to label and group the answers, for example 'cow 1', cow 2'
+          </div>
+        
+          <input class="govuk-input" id="set-name" name="setName" type="text" aria-describedby="set-name-hint">
+        
+        </div>
+        <a href="" class="govuk-button govuk-!-margin-top-4" role="button">
+          Save and update
+        </a>
+      </div>
+  </fieldset>
+</div>
+
+<!-- experiemental multiple question -->
