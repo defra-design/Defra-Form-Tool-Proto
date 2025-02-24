@@ -66,9 +66,42 @@
   <div class="govuk-grid-column-one-half">
     <div class="govuk-!-padding-left-3">
       <h2 class="govuk-heading-m">Page preview</h2>
-      <div class="app-preview-border">
-        <div id="page-preview" class="app-preview-pane">
-          <!-- Preview content will be inserted here -->
+      <div class="app-preview-panel preview-column">
+        <div class="govuk-tabs" data-module="govuk-tabs">
+          <h2 class="govuk-tabs__title">Preview sections</h2>
+          <ul class="govuk-tabs__list">
+            <li class="govuk-tabs__list-item govuk-tabs__list-item--selected">
+              <a class="govuk-tabs__tab" href="#preview-tab">
+                Preview
+              </a>
+            </li>
+            <li class="govuk-tabs__list-item">
+              <a class="govuk-tabs__tab" href="#error-messages-tab">
+                Error messages
+              </a>
+            </li>
+          </ul>
+
+          <div class="govuk-tabs__panel" id="preview-tab">
+            <h2 class="govuk-heading-m">Preview</h2>
+            <div id="page-preview" class="app-preview-pane">
+              <!-- Preview content will be inserted here -->
+            </div>
+          </div>
+
+          <div class="govuk-tabs__panel govuk-tabs__panel--hidden" id="error-messages-tab">
+            <h2 class="govuk-heading-m">Error messages</h2>
+            <div class="govuk-error-summary" data-module="govuk-error-summary">
+              <div role="alert">
+                <h2 class="govuk-error-summary__title">
+                  Example error states
+                </h2>
+                <div class="govuk-error-summary__body">
+                  <p>This section will show example error states for the form fields.</p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -90,4 +123,15 @@
 <!-- Load page-specific scripts -->
 <script src="/public/javascripts/options.js"></script>
 <script src="/public/javascripts/page-editor.js"></script>
+
+<!-- Initialize tabs -->
+<script>
+  // Ensure tabs are initialized
+  document.addEventListener('DOMContentLoaded', function() {
+    const tabs = document.querySelector('[data-module="govuk-tabs"]');
+    if (tabs && window.GOVUKFrontend && window.GOVUKFrontend.Tabs) {
+      new window.GOVUKFrontend.Tabs(tabs).init();
+    }
+  });
+</script>
 {% endblock %}
