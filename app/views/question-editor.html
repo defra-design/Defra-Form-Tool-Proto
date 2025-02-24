@@ -76,12 +76,14 @@
         </div>
       {% endif %}
 
+      {# Commented out maxLength field for now - can be re-enabled if needed
       {% if params.type === 'text' or params.type === 'textarea' %}
         <div class="govuk-form-group">
           <label class="govuk-label" for="maxLength">Maximum length (optional)</label>
           <input class="govuk-input" id="maxLength" name="maxLength" type="number" value="{{ data.maxLength }}">
         </div>
       {% endif %}
+      #}
 
       {% if params.type === 'tel' or params.type === 'email' %}
         <div class="govuk-form-group">
