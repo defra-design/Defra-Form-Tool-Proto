@@ -190,8 +190,8 @@ window.GOVUK.Prototype = window.GOVUK.Prototype || {}
       row.innerHTML = `
         <td class="govuk-table__cell" style="vertical-align: middle;">
           <a href="${editUrl}" class="govuk-link">${title}</a>
+          <p class="govuk-body-s govuk-!-margin-bottom-0 govuk-!-margin-top-1" style="color: #505a5f;">(${fieldTypeDisplay} field)</p>
         </td>
-        <td class="govuk-table__cell" style="vertical-align: middle;">${fieldTypeDisplay}</td>
         <td class="govuk-table__cell" style="vertical-align: middle;">
           <div class="govuk-button-group" style="margin-bottom: 0;">
             <button type="button" class="govuk-button govuk-button--secondary govuk-button--small" data-move-up data-new-position="${index - 1}" ${index === 0 ? 'disabled' : ''}>
